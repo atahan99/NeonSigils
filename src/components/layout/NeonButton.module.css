@@ -1,0 +1,81 @@
+.btn {
+  --btn-accent: var(--neon-cyan);
+  --btn-accent-rgb: 0, 245, 255;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  padding: var(--space-3) var(--space-5);
+  color: var(--btn-accent);
+  background: rgba(var(--btn-accent-rgb), 0.06);
+  border: 1px solid rgba(var(--btn-accent-rgb), 0.5);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: box-shadow 0.18s ease, background 0.18s ease, transform 0.1s ease,
+    color 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(var(--btn-accent-rgb), 0.16);
+  box-shadow: 0 0 14px rgba(var(--btn-accent-rgb), 0.55),
+    inset 0 0 10px rgba(var(--btn-accent-rgb), 0.2);
+  color: var(--text-main);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.primary {
+  --btn-accent: var(--neon-cyan);
+  --btn-accent-rgb: 0, 245, 255;
+}
+.magenta {
+  --btn-accent: var(--neon-magenta);
+  --btn-accent-rgb: 255, 43, 214;
+}
+.green {
+  --btn-accent: var(--neon-green);
+  --btn-accent-rgb: 57, 255, 20;
+}
+.danger {
+  --btn-accent: var(--danger-red);
+  --btn-accent-rgb: 255, 59, 92;
+}
+
+.ghost {
+  background: transparent;
+  border-color: rgba(139, 163, 184, 0.35);
+  color: var(--text-muted);
+}
+.ghost:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--panel-border-strong);
+  box-shadow: none;
+  background: rgba(0, 245, 255, 0.05);
+}
+
+.lg {
+  font-size: 1.05rem;
+  padding: var(--space-4) var(--space-6);
+}
+.sm {
+  font-size: 0.78rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.fullWidth {
+  width: 100%;
+}
