@@ -1,0 +1,84 @@
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Row 1: stats */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* Row 2: logo | hangman */
+.mid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: stretch;
+}
+
+/* The clean ASCII logo sits here; a themed diagonal mask covers the
+   still-encrypted portion and recedes as the sigil is decoded. This frame is a
+   direct grid child so it stretches to the same height as the hangman figure. */
+.sigilFrame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: rgba(3, 4, 12, 0.5);
+}
+
+.sigilArea {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: background 0.35s ease;
+}
+
+/* Row 3: word, corruption, keyboard, actions */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.hint {
+  margin: 0;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .mid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,49 @@
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(2.4rem, 1fr));
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.key {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  padding: var(--space-3) 0;
+  color: var(--neon-cyan);
+  background: rgba(0, 245, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.08s ease,
+    color 0.15s ease;
+}
+
+.key:hover:not(:disabled) {
+  background: rgba(0, 245, 255, 0.16);
+  box-shadow: 0 0 12px rgba(0, 245, 255, 0.5);
+  color: var(--text-main);
+}
+
+.key:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.key:disabled {
+  cursor: not-allowed;
+}
+
+.correct {
+  color: var(--neon-green);
+  border-color: rgba(57, 255, 20, 0.6);
+  background: rgba(57, 255, 20, 0.12);
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+  opacity: 1;
+}
+
+.wrong {
+  color: var(--danger-red);
+  border-color: rgba(255, 59, 92, 0.6);
+  background: rgba(255, 59, 92, 0.12);
+  box-shadow: 0 0 8px rgba(255, 59, 92, 0.35);
+  opacity: 1;
+}
