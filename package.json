@@ -1,0 +1,37 @@
+{
+  "name": "neon-sigils",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A cyberpunk ASCII tech-logo guessing game.",
+  "license": "MIT",
+  "homepage": "https://atahan99.github.io/NeonSigils/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atahan99/NeonSigils.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "fetch-icons": "tsx scripts/fetch-icons.ts",
+    "generate-ascii": "tsx scripts/generate-ascii.ts",
+    "validate-logos": "tsx scripts/validate-logo-data.ts",
+    "assets": "npm run fetch-icons && npm run generate-ascii && npm run validate-logos"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "sharp": "^0.33.5",
+    "simple-icons": "^13.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

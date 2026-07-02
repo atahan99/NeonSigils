@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Build-time icon resolver cache (regenerable via `npm run assets`)
+scripts/svg/
+scripts/.cache/
