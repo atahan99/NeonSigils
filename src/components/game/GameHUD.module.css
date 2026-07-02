@@ -1,0 +1,25 @@
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* On narrow screens let both groups take the full row and space out. */
+@media (max-width: 560px) {
+  .hud {
+    justify-content: flex-start;
+  }
+  .group {
+    flex: 1 1 100%;
+  }
+}

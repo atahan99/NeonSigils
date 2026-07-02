@@ -1,0 +1,73 @@
+.badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 245, 255, 0.03);
+  min-width: 84px;
+}
+
+.label {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.value {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.lives {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--neon-green);
+  box-shadow: 0 0 6px rgba(57, 255, 20, 0.6);
+}
+.pipEmpty {
+  background: rgba(139, 163, 184, 0.25);
+  box-shadow: none;
+}
+.pipDanger {
+  background: var(--danger-red);
+  box-shadow: 0 0 6px rgba(255, 59, 92, 0.6);
+}
+
+.countdownBar {
+  display: block;
+  height: 4px;
+  min-width: 84px;
+  margin-top: 5px;
+  background: rgba(0, 245, 255, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.countdownFill {
+  display: block;
+  height: 100%;
+  background: var(--neon-cyan);
+  transition: width 0.2s linear, background 0.2s ease;
+}
+.countdownFill.warn {
+  background: var(--neon-yellow);
+}
+.countdownFill.danger {
+  background: var(--danger-red);
+}

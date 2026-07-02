@@ -1,0 +1,41 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow-x: auto;
+  padding: var(--space-4);
+  background: radial-gradient(circle at 50% 40%, rgba(0, 245, 255, 0.06), transparent 70%);
+  border-radius: var(--radius-sm);
+}
+
+.pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  line-height: 1.05;
+  white-space: pre;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 6px rgba(0, 245, 255, 0.45);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.sm { font-size: 0.5rem; }
+.md { font-size: 0.72rem; }
+.lg { font-size: 0.95rem; }
+
+/* Corrupted variants tint magenta/green for a decoding-in-progress feel. */
+.glitched {
+  color: var(--neon-magenta);
+  text-shadow: 0 0 6px rgba(255, 43, 214, 0.5);
+}
+.cropped {
+  color: var(--neon-yellow);
+  text-shadow: 0 0 6px rgba(250, 255, 0, 0.4);
+}
+
+@media (max-width: 640px) {
+  .sm { font-size: 0.4rem; }
+  .md { font-size: 0.52rem; }
+  .lg { font-size: 0.62rem; }
+}
