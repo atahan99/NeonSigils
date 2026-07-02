@@ -1,4 +1,5 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react"
+import { forwardRef, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from "react"
+import { useSound } from "../../hooks/useSound"
 import styles from "./NeonButton.module.css"
 
 type Variant = "primary" | "magenta" | "green" | "danger" | "ghost"
@@ -27,9 +28,10 @@ const sizeClass: Record<Size, string> = {
 
 export const NeonButton = forwardRef<HTMLButtonElement, NeonButtonProps>(
   (
-    { variant = "primary", size = "md", fullWidth = false, className, children, type = "button", ...rest },
+    { variant = "primary", size = "md", fullWidth = false, className, children, type = "button", onClick, ...rest },
     ref,
   ) => {
+    const play = useSound()
     const classes = [
       styles.btn,
       variantClass[variant],
@@ -40,8 +42,13 @@ export const NeonButton = forwardRef<HTMLButtonElement, NeonButtonProps>(
       .filter(Boolean)
       .join(" ")
 
+    const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+      play("click")
+      onClick?.(event)
+    }
+
     return (
-      <button ref={ref} type={type} className={classes} {...rest}>
+      <button ref={ref} type={type} className={classes} onClick={handleClick} {...rest}>
         {children}
       </button>
     )

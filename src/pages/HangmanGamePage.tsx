@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import { useGameSession } from "../hooks/useGameSession"
 import { useRouter, type GameSummary } from "../router"
 import { useSettings } from "../hooks/useSettings"
+import { useSound } from "../hooks/useSound"
 import type { GameConfig } from "../types/game"
 import { AsciiLogo } from "../components/game/AsciiLogo"
 import { ScorePanel } from "../components/game/ScorePanel"
@@ -29,9 +30,31 @@ type HangmanGameProps = {
 const HangmanGame = ({ config }: HangmanGameProps) => {
   const { navigate } = useRouter()
   const { settings } = useSettings()
+  const play = useSound()
   const g = useGameSession(config)
   const { state } = g
   const logo = state.currentLogo
+
+  // Blip on each new letter guess: rising confirm for a hit, buzz for a miss.
+  // Solves and game overs are handled by the status effect below instead.
+  const prevGuessCount = useRef(state.guessedLetters.length)
+  useEffect(() => {
+    if (state.guessedLetters.length > prevGuessCount.current && state.status === "playing") {
+      const last = state.guessedLetters[state.guessedLetters.length - 1]
+      play(last && state.wrongLetters.includes(last) ? "wrong" : "correct")
+    }
+    prevGuessCount.current = state.guessedLetters.length
+  }, [state.guessedLetters, state.wrongLetters, state.status, play])
+
+  // Sigil solved -> victory jingle; out of lives -> game over sweep.
+  const prevStatus = useRef(state.status)
+  useEffect(() => {
+    if (prevStatus.current !== state.status) {
+      if (state.status === "won") play("win")
+      else if (state.status === "gameover") play("gameover")
+      prevStatus.current = state.status
+    }
+  }, [state.status, play])
 
   const tuning = tuningFor(config.difficulty)
   const maxLives = startLivesFor(config)

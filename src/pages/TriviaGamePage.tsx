@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import { useRouter, type GameSummary } from "../router"
 import { useSettings } from "../hooks/useSettings"
+import { useSound } from "../hooks/useSound"
 import { useGameSession } from "../hooks/useGameSession"
 import type { GameConfig } from "../types/game"
 import type { Difficulty } from "../types/logo"
@@ -47,6 +48,7 @@ const footerStyle: CSSProperties = {
 const TriviaGame = ({ config }: { config: GameConfig }) => {
   const { navigate } = useRouter()
   const { settings } = useSettings()
+  const play = useSound()
   const g = useGameSession(config)
   const { state, currentLogo } = g
 
@@ -55,6 +57,26 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
   useEffect(() => {
     if (state.status === "playing") preAnswerScore.current = state.score
   }, [state.status, state.score])
+
+  // Blip on each question outcome (win/lose/game over).
+  const prevStatus = useRef(state.status)
+  useEffect(() => {
+    if (prevStatus.current !== state.status) {
+      if (state.status === "won") play("correct")
+      else if (state.status === "gameover") play("gameover")
+      else if (state.status === "lost") play("wrong")
+      prevStatus.current = state.status
+    }
+  }, [state.status, play])
+
+  // A wrong first guess that keeps the round alive (retry) also buzzes.
+  const prevAttempts = useRef(state.attempts)
+  useEffect(() => {
+    if (state.attempts > prevAttempts.current && state.status === "playing") {
+      play("wrong")
+    }
+    prevAttempts.current = state.attempts
+  }, [state.attempts, state.status, play])
 
   const isPlaying = state.status === "playing"
   const modalOpen = state.status === "won" || state.status === "lost" || state.status === "gameover"
