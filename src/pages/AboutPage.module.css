@@ -1,0 +1,134 @@
+.page {
+  padding: var(--space-6) 0 var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pageHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.9rem;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 245, 255, 0.55);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin: var(--space-2) 0 0;
+  font-size: 0.9rem;
+  max-width: 52ch;
+}
+
+.lead {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin: 0 0 var(--space-3);
+}
+
+.body {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 var(--space-3);
+}
+
+.body:last-child {
+  margin-bottom: 0;
+}
+
+.accent {
+  color: var(--neon-magenta);
+  text-shadow: 0 0 8px rgba(255, 43, 214, 0.6);
+}
+
+/* --- How to play --- */
+.modes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+}
+
+.mode {
+  border-left: 2px solid var(--panel-border-strong);
+  padding-left: var(--space-4);
+}
+
+.modeTitle {
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neon-green);
+  margin: 0 0 var(--space-2);
+}
+
+/* --- Legal list --- */
+.legalList {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.legalItem {
+  position: relative;
+  padding-left: var(--space-5);
+  color: var(--text-main);
+  line-height: 1.55;
+}
+
+.legalItem::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--neon-cyan);
+}
+
+/* --- Credits --- */
+.creditList {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.creditItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.creditSource {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  color: var(--neon-yellow);
+  min-width: 130px;
+}
+
+.creditNote {
+  color: var(--text-muted);
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-3);
+}
+
+@media (max-width: 560px) {
+  .modes {
+    grid-template-columns: 1fr;
+  }
+}
