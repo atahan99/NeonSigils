@@ -1,0 +1,6 @@
+<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Hashcat</title>
+  <rect x="4" y="10" width="16" height="8" rx="1.5" fill="#000"/>
+  <path fill="#fff" d="M7 13h2.2v2H7v-2Zm3.2 0H12v2H10.2v-2Zm3.1 0h2.2v2h-2.2v-2Zm3.1 0H19v2h-2.6v-2Z"/>
+  <path fill="#000" d="M8 6.5h8v2.2H8V6.5Zm1.2-2.5h5.6l1 2.5H8.2l1-2.5Z"/>
+</svg>

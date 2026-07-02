@@ -1,0 +1,6 @@
+<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Radare2</title>
+  <path fill="#000" d="M5 5h8l6 6v8H5V5Zm2 2v10h10v-6.8L12.8 7H7Z"/>
+  <path fill="#000" d="M13 5.5 18.5 11H14V5.5Z"/>
+  <text x="8.2" y="15.5" font-family="monospace" font-size="5.5" font-weight="700" fill="#000">r2</text>
+</svg>

@@ -1,0 +1,6 @@
+<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>WPScan</title>
+  <circle cx="10.5" cy="10.5" r="5.5" fill="none" stroke="#000" stroke-width="2"/>
+  <path fill="#000" stroke="#000" stroke-width="1.6" d="m14.8 14.8 4.7 4.7"/>
+  <path fill="#000" d="M8.2 8.8h4.6v1.6H8.2V8.8Zm0 2.8h3.2v1.4H8.2v-1.4Z"/>
+</svg>

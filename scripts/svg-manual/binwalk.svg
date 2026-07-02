@@ -1,0 +1,6 @@
+<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Binwalk</title>
+  <rect x="5" y="4" width="14" height="16" rx="1.5" fill="#000"/>
+  <path fill="#fff" d="M8 8h8v1.5H8V8Zm0 3h8v1.5H8V11Zm0 3h5.5v1.5H8V14Z"/>
+  <path fill="#000" d="M7 19.5h10v1.8H7v-1.8Z"/>
+</svg>

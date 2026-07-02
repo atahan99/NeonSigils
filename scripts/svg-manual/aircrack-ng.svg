@@ -1,0 +1,7 @@
+<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Aircrack-ng</title>
+  <path fill="#000" d="M12 4C7.6 4 4 7.6 4 12h2.2c0-3.2 2.6-5.8 5.8-5.8S17.8 8.8 17.8 12H20c0-4.4-3.6-8-8-8Z"/>
+  <path fill="#000" d="M12 8c-2.2 0-4 1.8-4 4h2.2c0-1 1-1.8 1.8-1.8S13 11 13 12h2.2c0-2.2-1.8-4-4-4Z"/>
+  <circle cx="12" cy="14.5" r="1.6" fill="#000"/>
+  <path fill="#000" stroke="#000" stroke-width="1.4" d="M5 18.5 9.5 14M19 18.5 14.5 14"/>
+</svg>
