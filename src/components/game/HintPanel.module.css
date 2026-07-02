@@ -1,0 +1,59 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.btnLabel {
+  font-weight: 700;
+}
+
+.penalty {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.revealList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  list-style: none;
+  border: 1px solid var(--panel-border);
+  border-left: 2px solid var(--neon-green);
+  border-radius: var(--radius-sm);
+  background: rgba(57, 255, 20, 0.04);
+}
+
+.revealItem {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--neon-magenta);
+  border: 1px solid rgba(255, 43, 214, 0.4);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 43, 214, 0.06);
+}
