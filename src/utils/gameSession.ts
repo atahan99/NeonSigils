@@ -10,10 +10,9 @@ export const HANGMAN_START_LIVES = 6
 const emptyHint = (): HintState => ({
   usedKinds: [],
   textHintsShown: 0,
-  revealBoost: 0,
 })
 
-const hasModifier = (config: GameConfig, m: GameConfig["modifiers"][number]): boolean =>
+export const hasModifier = (config: GameConfig, m: GameConfig["modifiers"][number]): boolean =>
   config.modifiers.includes(m)
 
 /** Starting lives: Sudden Death forces 1; otherwise per-mode / tuning. */
@@ -37,7 +36,6 @@ export const createSession = (config: GameConfig): GameSessionState => {
     config,
     status: pool.length > 0 ? "playing" : "gameover",
     pool,
-    usedLogoIds: first ? [first.id] : [],
     currentIndex: 0,
     currentLogo: first,
     score: 0,
@@ -63,6 +61,12 @@ export const createSession = (config: GameConfig): GameSessionState => {
 
 /** Whether this run is a Time Attack (bounded by a clock, not a round count). */
 export const isTimeAttack = (state: GameSessionState): boolean => state.deadline != null
+
+/** Total Time Attack duration in seconds from run start. */
+export const timeAttackSecondsRemaining = (state: GameSessionState): number | undefined => {
+  if (!isTimeAttack(state) || state.deadline == null) return undefined
+  return Math.max(0, Math.round((state.deadline - state.startedAt) / 1000))
+}
 
 /** How many questions this run should include (Infinity for endless / time attack). */
 export const totalRounds = (state: GameSessionState): number => {
@@ -101,7 +105,6 @@ export const advanceLogo = (state: GameSessionState): GameSessionState => {
     pool,
     currentIndex: nextIndex,
     currentLogo: nextLogo,
-    usedLogoIds: [...state.usedLogoIds, nextLogo.id],
     roundNumber: state.roundNumber + 1,
     questionStartedAt: Date.now(),
     hint: emptyHint(),

@@ -1,9 +1,10 @@
+import { guessableChars } from "../../utils/hangman"
+import { cn } from "../../utils/cn"
 import styles from "./HangmanWord.module.css"
 
 type HangmanWordProps = {
   name: string
   guessedLetters: string[] // lowercase (right or wrong)
-  guessableChars: (name: string) => string[]
   solved: boolean
   /** When false (hard/expert), hide word boundaries + punctuation. */
   showLength?: boolean
@@ -15,7 +16,6 @@ const isAlnum = (ch: string): boolean => /[a-z0-9]/i.test(ch)
 export const HangmanWord = ({
   name,
   guessedLetters,
-  guessableChars,
   solved,
   showLength = true,
 }: HangmanWordProps) => {
@@ -27,14 +27,10 @@ export const HangmanWord = ({
       ? `Word has ${targets.length} letters, ${revealedCount} revealed.`
       : `Encrypted handle, ${revealedCount} fragments decoded.`
 
-  // Hard/expert: collapse to a continuous run of only the alphanumeric slots,
-  // dropping spaces and punctuation so word structure isn't a hint.
   const chars = showLength ? [...name] : [...name].filter(isAlnum)
 
   return (
-    <div
-      className={[styles.word, solved ? styles.solved : ""].filter(Boolean).join(" ")}
-    >
+    <div className={cn(styles.word, solved && styles.solved)}>
       <span className="sr-only" aria-live="polite">
         {srText}
       </span>
@@ -43,22 +39,14 @@ export const HangmanWord = ({
           if (!isAlnum(ch)) {
             const gap = ch === " "
             return (
-              <span
-                key={i}
-                className={gap ? styles.gap : styles.symbol}
-              >
+              <span key={i} className={gap ? styles.gap : styles.symbol}>
                 {gap ? "" : ch}
               </span>
             )
           }
           const revealed = solved || guessedLetters.includes(ch.toLowerCase())
           return (
-            <span
-              key={i}
-              className={[styles.slot, revealed ? styles.revealed : ""]
-                .filter(Boolean)
-                .join(" ")}
-            >
+            <span key={i} className={cn(styles.slot, revealed && styles.revealed)}>
               {revealed ? ch.toUpperCase() : "_"}
             </span>
           )

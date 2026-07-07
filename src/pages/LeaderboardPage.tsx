@@ -10,6 +10,7 @@ import {
   sortByScore,
   sortByRecent,
 } from "../utils/leaderboardStorage"
+import { formatAccuracy, formatDuration } from "../utils/format"
 import type { LeaderboardEntry } from "../types/leaderboard"
 import type { GameMode } from "../types/game"
 import type { Difficulty, PlayCategoryId } from "../types/logo"
@@ -41,13 +42,6 @@ const CATEGORIES: PlayCategoryId[] = [
 ]
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "expert"]
 
-const formatDuration = (totalSeconds: number): string => {
-  const safe = Math.max(0, Math.floor(totalSeconds))
-  const minutes = Math.floor(safe / 60)
-  const seconds = safe % 60
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-}
-
 const formatDate = (iso: string): string => {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return "—"
@@ -57,8 +51,6 @@ const formatDate = (iso: string): string => {
     day: "numeric",
   })
 }
-
-const formatAccuracy = (accuracy: number): string => `${Math.round(accuracy * 100)}%`
 
 // Highest-scoring entry per category present in the archive, ranked by score.
 const bestPerCategory = (entries: LeaderboardEntry[]): LeaderboardEntry[] => {
@@ -259,7 +251,7 @@ export const LeaderboardPage = () => {
                       <td data-label="Acc">{formatAccuracy(entry.accuracy)}</td>
                       <td data-label="Streak">{entry.longestStreak}</td>
                       <td data-label="Time">
-                        {formatDuration(entry.durationSeconds)}
+                        {formatDuration(entry.durationSeconds, true)}
                       </td>
                       <td className={styles.date} data-label="Date">
                         {formatDate(entry.createdAt)}

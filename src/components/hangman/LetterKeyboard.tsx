@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { cn } from "../../utils/cn"
 import styles from "./LetterKeyboard.module.css"
 
 type LetterKeyboardProps = {
@@ -42,13 +43,7 @@ export const LetterKeyboard = ({
           <button
             key={letter}
             type="button"
-            className={[
-              styles.key,
-              correct ? styles.correct : "",
-              wrong ? styles.wrong : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
+            className={cn(styles.key, correct && styles.correct, wrong && styles.wrong)}
             onClick={handleClick}
             disabled={disabled || guessed}
             aria-label={`Letter ${letter.toUpperCase()}, ${status}`}

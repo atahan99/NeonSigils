@@ -34,6 +34,3 @@ export const shuffle = <T>(items: T[], rng: () => number = Math.random): T[] => 
   }
   return arr
 }
-
-export const pickRandom = <T>(items: T[], rng: () => number = Math.random): T =>
-  items[Math.floor(rng() * items.length)]

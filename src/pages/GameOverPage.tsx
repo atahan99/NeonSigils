@@ -3,20 +3,10 @@ import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
 import { getPlayCategoryName } from "../data/categories"
 import { addLeaderboardEntry } from "../utils/leaderboardStorage"
+import { formatAccuracy, formatDuration } from "../utils/format"
 import { NeonPanel } from "../components/layout/NeonPanel"
 import { NeonButton } from "../components/layout/NeonButton"
 import styles from "./GameOverPage.module.css"
-
-const formatDuration = (totalSeconds: number): string => {
-  const safe = Math.max(0, Math.round(totalSeconds))
-  const minutes = Math.floor(safe / 60)
-  const seconds = safe % 60
-  return `${minutes}:${String(seconds).padStart(2, "0")}`
-}
-
-// Accuracy may arrive as a 0..1 fraction or an already-scaled percent.
-const formatAccuracy = (accuracy: number): string =>
-  `${Math.round(accuracy <= 1 ? accuracy * 100 : accuracy)}%`
 
 export const GameOverPage = () => {
   const { navigate, params } = useRouter()

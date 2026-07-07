@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useReducer } from "react"
 import type { GameConfig, GameSessionState, HintKind } from "../types/game"
 import { isAnswerCorrect } from "../utils/normalizeAnswer"
+import { guessableChars, isSolved } from "../utils/hangman"
 import {
   scoreHangmanSolve,
   scoreTriviaAnswer,
@@ -12,25 +13,13 @@ import { tuningFor, DECAY_PERCENT_PER_TICK } from "../data/difficultyTuning"
 import {
   advanceLogo,
   createSession,
-  currentLogoOrThrow,
   elapsedSeconds,
   hasNextLogo,
 } from "../utils/gameSession"
 
 // Reveal never decays below this (keeps the puzzle from going fully dark).
 const DECAY_FLOOR = 15
-
-/** Guessable characters in an answer: letters + digits (case-insensitive). */
-const guessableChars = (name: string): string[] => {
-  const set = new Set<string>()
-  for (const ch of name.toLowerCase()) {
-    if (/[a-z0-9]/.test(ch)) set.add(ch)
-  }
-  return [...set]
-}
-
-const isSolved = (name: string, guessed: string[]): boolean =>
-  guessableChars(name).every((c) => guessed.includes(c))
+const HINT_REVEAL_BUMP = 20
 
 type Action =
   | { type: "reset"; config: GameConfig }
@@ -42,6 +31,22 @@ type Action =
   | { type: "next" }
 
 const clampReveal = (v: number): number => Math.min(100, Math.max(0, v))
+
+const loseLife = (
+  state: GameSessionState,
+  extra: Partial<GameSessionState> = {},
+): GameSessionState => {
+  const lives = state.lives - 1
+  return {
+    ...state,
+    lives,
+    streak: 0,
+    wrongCount: state.wrongCount + 1,
+    lastResult: "wrong",
+    status: lives <= 0 ? "gameover" : "lost",
+    ...extra,
+  }
+}
 
 const reducer = (state: GameSessionState, action: Action): GameSessionState => {
   switch (action.type) {
@@ -78,31 +83,12 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
       if (attempts < tuning.triviaAttempts) {
         return { ...state, attempts, lastResult: "wrong", status: "playing" }
       }
-      const lives = state.lives - 1
-      return {
-        ...state,
-        attempts,
-        lives,
-        streak: 0,
-        wrongCount: state.wrongCount + 1,
-        lastResult: "wrong",
-        status: lives <= 0 ? "gameover" : "lost",
-      }
+      return loseLife(state, { attempts })
     }
 
     case "trivia-timeout": {
       if (state.status !== "playing" || !state.currentLogo) return state
-      // Timeout ends the question immediately, regardless of attempts left.
-      const lives = state.lives - 1
-      return {
-        ...state,
-        lives,
-        streak: 0,
-        wrongCount: state.wrongCount + 1,
-        lastResult: "wrong",
-        timedOut: true,
-        status: lives <= 0 ? "gameover" : "lost",
-      }
+      return loseLife(state, { timedOut: true })
     }
 
     case "hangman-letter": {
@@ -168,7 +154,7 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
       const isReveal = action.kind === "reveal"
       return {
         ...state,
-        revealPercent: isReveal ? clampReveal(state.revealPercent + 20) : state.revealPercent,
+        revealPercent: isReveal ? clampReveal(state.revealPercent + HINT_REVEAL_BUMP) : state.revealPercent,
         // Any hint/boost breaks the "clean run" bonus (category hint is free of penalty
         // but still counts as assistance).
         cleanRun: false,
@@ -178,7 +164,6 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
             action.kind === "text"
               ? state.hint.textHintsShown + 1
               : state.hint.textHintsShown,
-          revealBoost: isReveal ? state.hint.revealBoost + 0.2 : state.hint.revealBoost,
         },
       }
     }
@@ -198,8 +183,6 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
       return state
   }
 }
-
-export type UseGameSession = ReturnType<typeof useGameSession>
 
 export const useGameSession = (config: GameConfig) => {
   const [state, dispatch] = useReducer(reducer, config, createSession)
@@ -234,9 +217,5 @@ export const useGameSession = (config: GameConfig) => {
     next,
     restart,
     canContinue,
-    getElapsedSeconds: () => elapsedSeconds(state),
-    guessableChars,
   }
 }
-
-export { currentLogoOrThrow }

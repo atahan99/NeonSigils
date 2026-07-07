@@ -2,7 +2,6 @@ import { RouterProvider, useRouter } from "./router"
 import { SettingsProvider } from "./hooks/useSettings"
 import { AppShell } from "./components/layout/AppShell"
 import { HomePage } from "./pages/HomePage"
-import { ModeSelectPage } from "./pages/ModeSelectPage"
 import { CategorySelectPage } from "./pages/CategorySelectPage"
 import { TriviaGamePage } from "./pages/TriviaGamePage"
 import { HangmanGamePage } from "./pages/HangmanGamePage"
@@ -16,8 +15,6 @@ const CurrentPage = () => {
   switch (route) {
     case "home":
       return <HomePage />
-    case "mode-select":
-      return <ModeSelectPage />
     case "category-select":
       return <CategorySelectPage />
     case "trivia":

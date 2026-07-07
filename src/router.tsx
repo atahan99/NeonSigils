@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react"
@@ -11,7 +12,6 @@ import type { LeaderboardEntry } from "./types/leaderboard"
 
 export type RouteName =
   | "home"
-  | "mode-select"
   | "category-select"
   | "trivia"
   | "hangman"
@@ -31,6 +31,8 @@ export type RouteParams = {
   savedEntryId?: string
 }
 
+type HistoryEntry = { route: RouteName; params: RouteParams }
+
 type RouterContextValue = {
   route: RouteName
   params: RouteParams
@@ -43,25 +45,27 @@ const RouterContext = createContext<RouterContextValue | null>(null)
 export const RouterProvider = ({ children }: { children: ReactNode }) => {
   const [route, setRoute] = useState<RouteName>("home")
   const [params, setParams] = useState<RouteParams>({})
-  const [, setHistory] = useState<RouteName[]>([])
+  const [, setHistory] = useState<HistoryEntry[]>([])
+  const currentRef = useRef({ route, params })
+  currentRef.current = { route, params }
 
   const navigate = useCallback((next: RouteName, nextParams: RouteParams = {}) => {
-    setHistory((h) => [...h, route])
+    setHistory((h) => [...h, currentRef.current])
     setRoute(next)
     setParams(nextParams)
-    // Scroll to top on route change for long screens.
     window.scrollTo({ top: 0 })
-  }, [route])
+  }, [])
 
   const back = useCallback(() => {
     setHistory((h) => {
       if (h.length === 0) {
         setRoute("home")
+        setParams({})
         return h
       }
       const prev = h[h.length - 1]
-      setRoute(prev)
-      setParams({})
+      setRoute(prev.route)
+      setParams(prev.params)
       return h.slice(0, -1)
     })
   }, [])

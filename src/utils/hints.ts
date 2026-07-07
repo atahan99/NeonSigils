@@ -1,6 +1,7 @@
 import type { LogoEntry } from "../types/logo"
 import type { HintKind } from "../types/game"
 import { getCategory } from "../data/categories"
+import { shuffle } from "./random"
 
 export type HintOption = {
   kind: HintKind
@@ -54,11 +55,11 @@ export const buildChoices = (
   count = 4,
   rng: () => number = Math.random,
 ): string[] => {
-  const decoys = pool
-    .filter((l) => l.id !== logo.id)
-    .sort(() => rng() - 0.5)
+  const decoys = shuffle(
+    pool.filter((l) => l.id !== logo.id),
+    rng,
+  )
     .slice(0, count - 1)
     .map((l) => l.name)
-  const options = [logo.name, ...decoys]
-  return options.sort(() => rng() - 0.5)
+  return shuffle([logo.name, ...decoys], rng)
 }

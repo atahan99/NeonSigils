@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { cn } from "../../utils/cn"
 import styles from "./StatBadge.module.css"
 
 type TimerProps = {
@@ -47,12 +48,11 @@ export const Timer = ({ startedAt, running, countdownFrom, onExpire }: TimerProp
 
   if (isCountdown) {
     const ratio = countdownFrom > 0 ? remaining / countdownFrom : 0
-    const fillClass = [
+    const fillClass = cn(
       styles.countdownFill,
-      ratio <= 0.25 ? styles.danger : ratio <= 0.5 ? styles.warn : "",
-    ]
-      .filter(Boolean)
-      .join(" ")
+      ratio <= 0.25 && styles.danger,
+      ratio <= 0.5 && ratio > 0.25 && styles.warn,
+    )
     return (
       <div className={styles.badge}>
         <span className={styles.label}>Trace Window</span>

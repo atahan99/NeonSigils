@@ -32,7 +32,6 @@ export type GameConfig = {
 export type HintState = {
   usedKinds: HintKind[]
   textHintsShown: number
-  revealBoost: number // extra reveal fraction (0..1) granted by hints
 }
 
 export type GameStatus = "idle" | "playing" | "won" | "lost" | "gameover"
@@ -41,7 +40,6 @@ export type GameSessionState = {
   config: GameConfig
   status: GameStatus
   pool: LogoEntry[] // shuffled logos for this run
-  usedLogoIds: string[]
   currentIndex: number
   currentLogo: LogoEntry | null
   score: number

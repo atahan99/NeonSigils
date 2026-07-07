@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react"
 import { useGameSession } from "../hooks/useGameSession"
-import { useRouter, type GameSummary } from "../router"
+import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
 import { useSound } from "../hooks/useSound"
+import { useRequireConfig } from "../hooks/useRequireConfig"
+import { useEffectOnChange } from "../hooks/useEffectOnChange"
 import type { GameConfig } from "../types/game"
 import { AsciiLogo } from "../components/game/AsciiLogo"
 import { ScorePanel } from "../components/game/ScorePanel"
@@ -16,9 +18,14 @@ import { HangmanWord } from "../components/hangman/HangmanWord"
 import { WrongLetters } from "../components/hangman/WrongLetters"
 import { LetterKeyboard } from "../components/hangman/LetterKeyboard"
 import { HangmanFigure } from "../components/hangman/HangmanFigure"
-import { totalRounds, startLivesFor } from "../utils/gameSession"
+import {
+  isTimeAttack,
+  startLivesFor,
+  timeAttackSecondsRemaining,
+  totalRounds,
+} from "../utils/gameSession"
 import { resolveHintText } from "../utils/hints"
-import { computeAccuracy, gradeRun, runCompletionBonus, extraMultiplier } from "../utils/scoring"
+import { buildGameSummary } from "../utils/runSummary"
 import { tuningFor, DECAY_TICK_MS } from "../data/difficultyTuning"
 import { getPlayCategoryName } from "../data/categories"
 import styles from "./HangmanGamePage.module.css"
@@ -35,40 +42,26 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const { state } = g
   const logo = state.currentLogo
 
-  // Blip on each new letter guess: rising confirm for a hit, buzz for a miss.
-  // Solves and game overs are handled by the status effect below instead.
-  const prevGuessCount = useRef(state.guessedLetters.length)
-  useEffect(() => {
-    if (state.guessedLetters.length > prevGuessCount.current && state.status === "playing") {
-      const last = state.guessedLetters[state.guessedLetters.length - 1]
-      play(last && state.wrongLetters.includes(last) ? "wrong" : "correct")
-    }
-    prevGuessCount.current = state.guessedLetters.length
-  }, [state.guessedLetters, state.wrongLetters, state.status, play])
+  useEffectOnChange(state.guessedLetters.length, (prev, next) => {
+    if (next <= prev || state.status !== "playing") return
+    const last = state.guessedLetters[state.guessedLetters.length - 1]
+    play(last && state.wrongLetters.includes(last) ? "wrong" : "correct")
+  })
 
-  // Sigil solved -> victory jingle; out of lives -> game over sweep.
-  const prevStatus = useRef(state.status)
-  useEffect(() => {
-    if (prevStatus.current !== state.status) {
-      if (state.status === "won") play("win")
-      else if (state.status === "gameover") play("gameover")
-      prevStatus.current = state.status
-    }
-  }, [state.status, play])
+  useEffectOnChange(state.status, (_prev, next) => {
+    if (next === "won") play("win")
+    else if (next === "gameover") play("gameover")
+  })
 
   const tuning = tuningFor(config.difficulty)
   const maxLives = startLivesFor(config)
 
-  // Baseline score at the start of the round, used to compute the solve delta.
   const roundBaseScore = useRef(0)
   useEffect(() => {
     roundBaseScore.current = state.score
-    // Reset only when a new sigil loads; score changes within a round are the delta.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.roundNumber])
 
-  // Expert reveal-decay: the sigil slowly re-encrypts while idle. Disabled for
-  // reduced motion (OS or setting) since it's a moving, distracting effect.
   const decay = g.decay
   const decayActive =
     tuning.hmDecay &&
@@ -89,16 +82,11 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const isLast = isOver || !g.canContinue
   const pointsDelta = Math.max(0, state.score - roundBaseScore.current)
 
-  // The clean ASCII logo is always rendered; a plain black diagonal mask
-  // (below) hides the still-encrypted portion and recedes as it's decoded.
   const asciiLines = logo.ascii.clean
   const revealPct = solved ? 100 : state.revealPercent
-  // Theme-matched diagonal cover for the undecoded (bottom-right) region:
-  // a glowing cyan edge, a faint purple sheen, over a deep-navy panel fill.
   const maskBackground = [
     `linear-gradient(135deg, transparent ${revealPct - 1}%, rgba(0,245,255,0.6) ${revealPct}%, transparent ${revealPct + 2}%)`,
     `linear-gradient(135deg, rgba(157,78,221,0) 0 ${revealPct}%, rgba(157,78,221,0.16) ${revealPct}% 100%)`,
-    // Fully opaque themed navy fill so no ASCII bleeds through the covered area.
     `linear-gradient(135deg, rgba(10,14,32,0) 0 ${revealPct}%, rgb(10,14,32) ${revealPct}% 100%)`,
   ].join(", ")
   const wrongCount = state.wrongLetters.length
@@ -114,37 +102,14 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const noMoreIntel = state.hint.textHintsShown >= logo.hints.length
   const textHint =
     state.hint.textHintsShown > 0
-      ? resolveHintText(logo, "text", state.hint.textHintsShown)
+      ? resolveHintText(logo, "text", state.hint.textHintsShown - 1)
       : ""
 
   const handleBoostReveal = () => g.useHint("reveal")
   const handleDecryptHint = () => g.useHint("text")
   const handleQuit = () => navigate("home")
 
-  const finishRun = () => {
-    const accuracy = computeAccuracy(state.correctCount, state.wrongCount)
-    const bonus = runCompletionBonus({
-      correctCount: state.correctCount,
-      wrongCount: state.wrongCount,
-      cleanRun: state.cleanRun,
-      difficulty: config.difficulty,
-      extraMultiplier: extraMultiplier(config.category, config.modifiers),
-    })
-    const summary: GameSummary = {
-      score: state.score + bonus,
-      mode: "hangman",
-      category: config.category,
-      difficulty: config.difficulty,
-      correctCount: state.correctCount,
-      wrongCount: state.wrongCount,
-      accuracy,
-      longestStreak: state.longestStreak,
-      durationSeconds: Math.round((Date.now() - state.startedAt) / 1000),
-      grade: gradeRun(accuracy, state.cleanRun, config.difficulty),
-      modifiers: config.modifiers,
-    }
-    navigate("game-over", { summary })
-  }
+  const finishRun = () => navigate("game-over", { summary: buildGameSummary(state, "hangman") })
 
   const handleNext = () => {
     if (isLast) {
@@ -154,18 +119,13 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
     g.next()
   }
 
-  // Time Attack: one global countdown for the whole run; expiry ends it.
-  const isTimeAttack = config.modifiers.includes("timeAttack")
-  const timeAttackSeconds =
-    isTimeAttack && state.deadline != null
-      ? Math.max(0, Math.round((state.deadline - state.startedAt) / 1000))
-      : undefined
+  const timeAttack = isTimeAttack(state)
+  const timeAttackSeconds = timeAttackSecondsRemaining(state)
 
   return (
     <div className={styles.page}>
       <NeonPanel title={`${getPlayCategoryName(config.category)} // Hangman`}>
         <div className={styles.grid}>
-          {/* Row 1: stats */}
           <div className={styles.stats}>
             <ScorePanel
               score={state.score}
@@ -174,10 +134,10 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
               totalRounds={totalRounds(state)}
             />
             <Timer
-              startedAt={isTimeAttack ? state.startedAt : state.questionStartedAt}
+              startedAt={timeAttack ? state.startedAt : state.questionStartedAt}
               running={state.status === "playing"}
               countdownFrom={timeAttackSeconds}
-              onExpire={isTimeAttack ? finishRun : undefined}
+              onExpire={timeAttack ? finishRun : undefined}
             />
             <LivesPanel
               lives={state.lives}
@@ -186,7 +146,6 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
             />
           </div>
 
-          {/* Row 2: sigil (left) | hangman figure (right) — equal height */}
           <div className={styles.mid}>
             <div className={styles.sigilFrame}>
               <div className={styles.sigilArea}>
@@ -211,12 +170,10 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
             <HangmanFigure wrong={wrongCount} maxWrong={maxLives} />
           </div>
 
-          {/* Row 3: word, corruption, keyboard, actions */}
           <div className={styles.controls}>
             <HangmanWord
               name={logo.name}
               guessedLetters={state.guessedLetters}
-              guessableChars={g.guessableChars}
               solved={solved}
               showLength={tuning.hmShowLength}
             />
@@ -272,14 +229,13 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
 }
 
 export const HangmanGamePage = () => {
-  const { params, navigate } = useRouter()
-  const config = params.config
-
-  useEffect(() => {
-    if (!config) navigate("home")
-  }, [config, navigate])
-
+  const config = useRequireConfig()
   if (!config) return null
 
-  return <HangmanGame config={config} />
+  return (
+    <HangmanGame
+      key={`${config.category}-${config.difficulty}-${config.roundLength}-${config.modifiers.join(",")}`}
+      config={config}
+    />
+  )
 }

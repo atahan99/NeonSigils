@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from "react"
-import type { CSSProperties } from "react"
-import { useRouter, type GameSummary } from "../router"
+import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
 import { useSound } from "../hooks/useSound"
 import { useGameSession } from "../hooks/useGameSession"
+import { useRequireConfig } from "../hooks/useRequireConfig"
+import { useEffectOnChange } from "../hooks/useEffectOnChange"
 import type { GameConfig } from "../types/game"
 import type { Difficulty } from "../types/logo"
-import { TRIVIA_START_LIVES } from "../utils/gameSession"
+import {
+  isTimeAttack,
+  startLivesFor,
+  timeAttackSecondsRemaining,
+} from "../utils/gameSession"
 import { isNearMiss } from "../utils/normalizeAnswer"
-import { computeAccuracy, gradeRun, runCompletionBonus, extraMultiplier } from "../utils/scoring"
+import { buildGameSummary } from "../utils/runSummary"
 import { tuningFor } from "../data/difficultyTuning"
 import { getPlayCategoryName } from "../data/categories"
 import { NeonPanel } from "../components/layout/NeonPanel"
@@ -18,33 +23,17 @@ import { ResultModal } from "../components/game/ResultModal"
 import { GameHUD } from "../components/game/GameHUD"
 import { AnswerInput } from "../components/game/AnswerInput"
 import { HintPanel } from "../components/game/HintPanel"
-type Frame = { key: "clean" | "glitched" | "cropped"; variant: "clean" | "glitched" | "cropped"; animated: boolean }
+import styles from "./TriviaGamePage.module.css"
 
-// Which ASCII rendering each difficulty gets.
+type Frame = { variant: "clean" | "glitched" | "cropped"; animated: boolean }
+
 const FRAME_BY_DIFFICULTY: Record<Difficulty, Frame> = {
-  easy: { key: "clean", variant: "clean", animated: false },
-  medium: { key: "glitched", variant: "glitched", animated: false },
-  hard: { key: "cropped", variant: "cropped", animated: false },
-  expert: { key: "glitched", variant: "glitched", animated: true },
+  easy: { variant: "clean", animated: false },
+  medium: { variant: "glitched", animated: false },
+  hard: { variant: "cropped", animated: false },
+  expert: { variant: "glitched", animated: true },
 }
 
-const layoutStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-5)",
-}
-
-const asciiStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "center",
-}
-
-const footerStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-}
-
-/** Inner game screen; only mounted once a valid config is present. */
 const TriviaGame = ({ config }: { config: GameConfig }) => {
   const { navigate } = useRouter()
   const { settings } = useSettings()
@@ -52,31 +41,20 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
   const g = useGameSession(config)
   const { state, currentLogo } = g
 
-  // Track the score right before an answer resolves, to compute the points delta.
   const preAnswerScore = useRef(state.score)
   useEffect(() => {
     if (state.status === "playing") preAnswerScore.current = state.score
   }, [state.status, state.score])
 
-  // Blip on each question outcome (win/lose/game over).
-  const prevStatus = useRef(state.status)
-  useEffect(() => {
-    if (prevStatus.current !== state.status) {
-      if (state.status === "won") play("correct")
-      else if (state.status === "gameover") play("gameover")
-      else if (state.status === "lost") play("wrong")
-      prevStatus.current = state.status
-    }
-  }, [state.status, play])
+  useEffectOnChange(state.status, (_prev, next) => {
+    if (next === "won") play("correct")
+    else if (next === "gameover") play("gameover")
+    else if (next === "lost") play("wrong")
+  })
 
-  // A wrong first guess that keeps the round alive (retry) also buzzes.
-  const prevAttempts = useRef(state.attempts)
-  useEffect(() => {
-    if (state.attempts > prevAttempts.current && state.status === "playing") {
-      play("wrong")
-    }
-    prevAttempts.current = state.attempts
-  }, [state.attempts, state.status, play])
+  useEffectOnChange(state.attempts, (prev, next) => {
+    if (next > prev && state.status === "playing") play("wrong")
+  })
 
   const isPlaying = state.status === "playing"
   const modalOpen = state.status === "won" || state.status === "lost" || state.status === "gameover"
@@ -85,11 +63,9 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
   const pointsDelta = state.score - preAnswerScore.current
 
   const tuning = tuningFor(config.difficulty)
-  const isTimeAttack = config.modifiers.includes("timeAttack")
-  // Per-question countdown, except in Time Attack (that uses a global clock).
-  const countdownSeconds = isTimeAttack ? undefined : tuning.triviaSeconds
+  const timeAttack = isTimeAttack(state)
+  const countdownSeconds = timeAttack ? undefined : tuning.triviaSeconds
 
-  // Retry state: a wrong first guess keeps us playing with attempts remaining.
   const retrying = isPlaying && state.lastResult === "wrong" && state.attempts > 0
   const attemptsLeft = Math.max(0, tuning.triviaAttempts - state.attempts)
   const [nearMiss, setNearMiss] = useState(false)
@@ -99,31 +75,7 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
     g.submitAnswer(value)
   }
 
-  // Build the final summary (with end-of-run bonuses + grade) and finish.
-  const finishRun = () => {
-    const accuracy = computeAccuracy(state.correctCount, state.wrongCount)
-    const bonus = runCompletionBonus({
-      correctCount: state.correctCount,
-      wrongCount: state.wrongCount,
-      cleanRun: state.cleanRun,
-      difficulty: config.difficulty,
-      extraMultiplier: extraMultiplier(config.category, config.modifiers),
-    })
-    const summary: GameSummary = {
-      score: state.score + bonus,
-      mode: "trivia",
-      category: config.category,
-      difficulty: config.difficulty,
-      correctCount: state.correctCount,
-      wrongCount: state.wrongCount,
-      accuracy,
-      longestStreak: state.longestStreak,
-      durationSeconds: Math.round((Date.now() - state.startedAt) / 1000),
-      grade: gradeRun(accuracy, state.cleanRun, config.difficulty),
-      modifiers: config.modifiers,
-    }
-    navigate("game-over", { summary })
-  }
+  const finishRun = () => navigate("game-over", { summary: buildGameSummary(state, "trivia") })
 
   const handleNext = () => {
     if (isLast) {
@@ -135,24 +87,20 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
 
   const handleQuit = () => navigate("home")
 
-  // Time Attack: one global countdown for the whole run; expiry ends it.
-  const timeAttackSeconds =
-    isTimeAttack && state.deadline != null
-      ? Math.max(0, Math.round((state.deadline - state.startedAt) / 1000))
-      : undefined
-  const hudCountdown = isTimeAttack ? timeAttackSeconds : countdownSeconds
-  const hudTimerStart = isTimeAttack ? state.startedAt : undefined
-  const hudOnTimeout = isTimeAttack ? finishRun : g.timeout
+  const timeAttackSeconds = timeAttackSecondsRemaining(state)
+  const hudCountdown = timeAttack ? timeAttackSeconds : countdownSeconds
+  const hudTimerStart = timeAttack ? state.startedAt : undefined
+  const hudOnTimeout = timeAttack ? finishRun : g.timeout
 
   const frame = FRAME_BY_DIFFICULTY[config.difficulty]
   const title = `${getPlayCategoryName(config.category)} // Trivia`
 
   return (
     <NeonPanel title={title} glow>
-      <div style={layoutStyle}>
+      <div className={styles.page}>
         <GameHUD
           state={state}
-          maxLives={state.config.modifiers.includes("suddenDeath") ? 1 : TRIVIA_START_LIVES}
+          maxLives={startLivesFor(config)}
           livesLabel="Lives"
           countdownSeconds={hudCountdown}
           timerStartedAt={hudTimerStart}
@@ -166,7 +114,7 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
         )}
 
         {retrying && (
-          <p className="text-danger" role="status" aria-live="assertive" style={{ margin: 0, textAlign: "center" }}>
+          <p className={`text-danger ${styles.retry}`} role="status" aria-live="assertive">
             {nearMiss ? "SO CLOSE // 1 char off — " : "SIGNAL MISALIGNED // "}
             retry ({attemptsLeft} attempt{attemptsLeft === 1 ? "" : "s"} left)
           </p>
@@ -174,9 +122,9 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
 
         {currentLogo ? (
           <>
-            <div style={asciiStyle}>
+            <div className={styles.ascii}>
               <AsciiLogo
-                lines={currentLogo.ascii[frame.key]}
+                lines={currentLogo.ascii[frame.variant]}
                 variant={frame.variant}
                 animated={frame.animated}
                 size="lg"
@@ -203,7 +151,7 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
           <p className="text-muted">No sigils available for this run.</p>
         )}
 
-        <div style={footerStyle}>
+        <div className={styles.footer}>
           <NeonButton variant="ghost" size="sm" onClick={handleQuit}>
             Quit
           </NeonButton>
@@ -223,15 +171,13 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
 }
 
 export const TriviaGamePage = () => {
-  const { params, navigate } = useRouter()
-  const config = params.config
-
-  useEffect(() => {
-    if (!config) navigate("home")
-  }, [config, navigate])
-
+  const config = useRequireConfig()
   if (!config) return null
 
-  // Remount the session when the config identity changes (new run).
-  return <TriviaGame key={`${config.category}-${config.difficulty}-${config.roundLength}`} config={config} />
+  return (
+    <TriviaGame
+      key={`${config.category}-${config.difficulty}-${config.roundLength}-${config.modifiers.join(",")}`}
+      config={config}
+    />
+  )
 }
