@@ -3,11 +3,11 @@
 **A cyberpunk ASCII tech-logo guessing game.**
 Decode glitched glyphs from security, networking, self-hosting, homelabbing, IT, and general tech.
 
-[![Live demo](https://img.shields.io/badge/play-live%20demo-00f5ff)](https://atahan99.github.io/NeonSigils/)
+[![Live demo](https://img.shields.io/badge/play-live%20demo-00f5ff)](https://neonsigils.cybrsmr.xyz)
 [![License: MIT](https://img.shields.io/badge/license-MIT-ff2bd6)](./LICENSE)
 [![Built with Vite + React + TS](https://img.shields.io/badge/vite-react-ts-39ff14)](#tech-stack)
 
-**Play it:** [https://atahan99.github.io/NeonSigils/](https://atahan99.github.io/NeonSigils/)
+**Play it:** [https://neonsigils.cybrsmr.xyz](https://neonsigils.cybrsmr.xyz)
 
 ## Screenshots
 
@@ -61,7 +61,7 @@ Adobe · Affinity · AlmaLinux · Amazon Web Services · AMD · Android · Angul
 - Plain CSS (variables + modules)
 - LocalStorage for settings and leaderboard
 - Build-time SVG → ASCII pipeline (`sharp`, `simple-icons`)
-- No backend, no accounts, no network at runtime
+- No backend, no accounts. Page views are counted with Cloudflare Web Analytics
 
 ## Local development
 
@@ -74,14 +74,7 @@ npm run preview    # preview the production build
 
 ## Deployment
 
-Static `dist/` folder (Vite `base: "./"`). Deploy to GitHub Pages, Netlify, Vercel, or Cloudflare Pages:
-
-```bash
-npm run build
-# then serve / upload the dist/ directory
-```
-
-Routing is internal state — no SPA redirect/404 config needed.
+Hosted on Cloudflare Pages at [neonsigils.cybrsmr.xyz](https://neonsigils.cybrsmr.xyz). Production branch `main`, build command `npm run build`, output directory `dist`, `NODE_VERSION` `24`. `public/_headers` is copied into that build. Routing is internal state, so no SPA redirect is required.
 
 ## Adding logos
 
