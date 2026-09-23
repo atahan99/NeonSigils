@@ -52,11 +52,34 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
 }
 
+html {
+  background-color: var(--bg-main);
+}
+
 body {
+  position: relative;
+  z-index: 0;
+  background-color: transparent;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fixed layer so the grid covers the viewport on tall pages.
+   background-attachment: fixed clips on this layout. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-color: var(--bg-main);
   background-image:
     radial-gradient(circle at 20% -10%, rgba(157, 78, 221, 0.18), transparent 45%),
@@ -64,13 +87,6 @@ body {
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: auto, auto, 44px 44px, 44px 44px;
-  background-attachment: fixed;
-  color: var(--text-main);
-  font-family: var(--font-mono);
-  font-size: 16px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 h1,
