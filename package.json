@@ -17,7 +17,8 @@
     "fetch-icons": "tsx scripts/fetch-icons.ts",
     "generate-ascii": "tsx scripts/generate-ascii.ts",
     "validate-logos": "tsx scripts/validate-logo-data.ts",
-    "assets": "npm run fetch-icons && npm run generate-ascii && npm run validate-logos"
+    "assets": "npm run fetch-icons && npm run generate-ascii && npm run validate-logos",
+    "test": "vitest run"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -27,11 +28,12 @@
     "@types/node": "^22.20.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "sharp": "^0.33.5",
+    "@vitejs/plugin-react": "^6.1.2",
+    "sharp": "^0.35.5",
     "simple-icons": "^13.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
   }
 }
