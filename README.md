@@ -43,7 +43,7 @@ The output is [`src/data/logos.generated.ts`](src/data/logos.generated.ts), whic
 - Hash-based routing, so Back, refresh and links like `#/leaderboard` work on a static host
 - Vitest for the game logic; GitHub Actions runs type-check, build, tests and data validation on every push
 - `localStorage` for settings and the leaderboard; there is no backend and no account system
-- Hosted on Cloudflare Pages, with Cloudflare Web Analytics for page-view counts (no cookies)
+- Hosted as a Cloudflare Worker serving static assets, with Cloudflare Web Analytics for page-view counts (no cookies)
 
 ## Running it locally
 
@@ -63,6 +63,19 @@ Other scripts:
 
 The generated logo data is committed, so you only need `npm run assets` after adding or changing logos.
 
+## Deployment
+
+Every push to `main` builds and deploys through Cloudflare Workers Builds, using the settings in [`wrangler.jsonc`](wrangler.jsonc). The dashboard settings are:
+
+| Setting | Value |
+| --- | --- |
+| Root directory | empty (the repo root, where `package.json` is) |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| `NODE_VERSION` | `24` |
+
+Don't set the root directory to `dist`. That folder is the build output and isn't in git, so the build fails before it starts. `wrangler.jsonc` already points Wrangler at `dist/`.
+
 ## Adding a logo
 
 1. Add an entry to the right file in [`src/data/logos/`](src/data/logos) with an `id`, `name`, `aliases`, `difficulty`, `tags`, at least two `hints`, and `sourceCandidates`.
@@ -80,7 +93,7 @@ src/
   pages/            one component per screen
   utils/            scoring, hints, answer matching, seeded RNG
   **/*.test.ts      unit tests next to the code they cover
-public/_headers     security headers for Cloudflare Pages
+public/_headers     security headers, served by Cloudflare with every asset
 ```
 
 ## Trademarks
