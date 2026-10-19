@@ -21,7 +21,7 @@ import {
 const DECAY_FLOOR = 15
 const HINT_REVEAL_BUMP = 20
 
-type Action =
+export type Action =
   | { type: "reset"; config: GameConfig }
   | { type: "trivia-answer"; guess: string }
   | { type: "trivia-timeout" }
@@ -49,7 +49,7 @@ const loseLife = (
   }
 }
 
-const reducer = (state: GameSessionState, action: Action): GameSessionState => {
+export const reducer = (state: GameSessionState, action: Action): GameSessionState => {
   switch (action.type) {
     case "reset":
       return createSession(action.config)

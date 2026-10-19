@@ -4,6 +4,8 @@ A browser game where you identify tech logos rendered as ASCII art. 333 logos fr
 
 **[Play it at neonsigils.cybrsmr.xyz](https://neonsigils.cybrsmr.xyz)**
 
+[![CI](https://github.com/atahan99/NeonSigils/actions/workflows/ci.yml/badge.svg)](https://github.com/atahan99/NeonSigils/actions/workflows/ci.yml)
+
 | Home | Trivia | Hangman |
 | --- | --- | --- |
 | ![Home screen](screenshots/home.png) | ![Trivia round showing an ASCII logo and the answer box](screenshots/trivia.png) | ![Hangman round with a half-revealed logo and letter keyboard](screenshots/hangman.png) |
@@ -32,12 +34,14 @@ Nothing is drawn by hand at runtime. A build-time pipeline in [`scripts/`](scrip
 3. **Map luminance to characters** using the ramp ` .:-=+*#%@` (or the shorter ` .:+#@` on Hard and Expert, which makes shapes blockier and harder to read).
 4. **Validate** the result: every logo needs at least two hints, a known category and non-empty art.
 
-The output is [`src/data/logos.generated.ts`](src/data/logos.generated.ts). The deployed site makes no requests to icon CDNs.
+The output is [`src/data/logos.generated.ts`](src/data/logos.generated.ts), which holds only the clean art. The glitched and cropped frames that harder difficulties show are derived in the browser from that art, seeded by logo id so every player sees the same frame. The archive is split into its own chunk and only downloads once you pick a mode. The deployed site makes no requests to icon CDNs.
 
 ## Stack
 
 - React 18, TypeScript, Vite
 - Plain CSS with custom properties and CSS Modules
+- Hash-based routing, so Back, refresh and links like `#/leaderboard` work on a static host
+- Vitest for the game logic; GitHub Actions runs type-check, build, tests and data validation on every push
 - `localStorage` for settings and the leaderboard; there is no backend and no account system
 - Hosted on Cloudflare Pages, with Cloudflare Web Analytics for page-view counts (no cookies)
 
@@ -54,9 +58,10 @@ Other scripts:
 | --- | --- |
 | `npm run build` | Type-check and build to `dist/` |
 | `npm run preview` | Serve the production build |
+| `npm test` | Run the unit tests |
 | `npm run assets` | Fetch SVGs, regenerate the ASCII data, validate it |
 
-The generated logo data is committed, so you only need `npm run assets` after adding or changing logos. If the generated file is missing, the app falls back to a small sample set in `src/data/sampleLogos.ts`.
+The generated logo data is committed, so you only need `npm run assets` after adding or changing logos.
 
 ## Adding a logo
 
@@ -74,6 +79,7 @@ src/
   hooks/            game session, settings, sound
   pages/            one component per screen
   utils/            scoring, hints, answer matching, seeded RNG
+  **/*.test.ts      unit tests next to the code they cover
 public/_headers     security headers for Cloudflare Pages
 ```
 
