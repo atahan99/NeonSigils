@@ -69,9 +69,18 @@
   text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
 }
 
+/* Report and save panels share one readable column instead of shrink-wrapping. */
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 640px;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
   width: 100%;
 }
@@ -101,8 +110,7 @@
 
 .saveRow {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  flex-direction: column;
   gap: var(--space-3);
   width: 100%;
 }
@@ -111,8 +119,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  flex: 1;
-  min-width: 200px;
 }
 
 .nameInput {

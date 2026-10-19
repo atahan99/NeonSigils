@@ -82,44 +82,46 @@ export const GameOverPage = () => {
         {perfectRun && <span className={styles.perfect}>PERFECT DECODE</span>}
       </div>
 
-      <NeonPanel title="Session Report">
-        <div className={styles.grid}>
-          {stats.map((stat) => (
-            <div key={stat.label} className={styles.stat}>
-              <span className={styles.statLabel}>{stat.label}</span>
-              <span className={styles.statValue}>{stat.value}</span>
-            </div>
-          ))}
-        </div>
-      </NeonPanel>
+      <div className={styles.report}>
+        <NeonPanel title="Session Report">
+          <div className={styles.grid}>
+            {stats.map((stat) => (
+              <div key={stat.label} className={styles.stat}>
+                <span className={styles.statLabel}>{stat.label}</span>
+                <span className={styles.statValue}>{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        </NeonPanel>
 
-      <NeonPanel title="Hall of Signals" glow>
-        {saved ? (
-          <div className={styles.archived}>
-            <p className={styles.archivedText}>SIGNAL ARCHIVED</p>
-            <NeonButton variant="green" onClick={() => navigate("leaderboard")}>
-              View Hall of Signals
-            </NeonButton>
-          </div>
-        ) : (
-          <div className={styles.saveRow}>
-            <label className={styles.nameField}>
-              <span className={styles.statLabel}>Operator Handle</span>
-              <input
-                className={styles.nameInput}
-                type="text"
-                value={playerName}
-                maxLength={24}
-                onChange={(e) => setPlayerName(e.target.value)}
-                aria-label="Player name"
-              />
-            </label>
-            <NeonButton variant="primary" onClick={handleSave}>
-              Save to Hall of Signals
-            </NeonButton>
-          </div>
-        )}
-      </NeonPanel>
+        <NeonPanel title="Hall of Signals" glow>
+          {saved ? (
+            <div className={styles.archived}>
+              <p className={styles.archivedText}>SIGNAL ARCHIVED</p>
+              <NeonButton variant="green" onClick={() => navigate("leaderboard")}>
+                View Hall of Signals
+              </NeonButton>
+            </div>
+          ) : (
+            <div className={styles.saveRow}>
+              <label className={styles.nameField}>
+                <span className={styles.statLabel}>Operator Handle</span>
+                <input
+                  className={styles.nameInput}
+                  type="text"
+                  value={playerName}
+                  maxLength={24}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  aria-label="Player name"
+                />
+              </label>
+              <NeonButton variant="primary" onClick={handleSave}>
+                Save to Hall of Signals
+              </NeonButton>
+            </div>
+          )}
+        </NeonPanel>
+      </div>
 
       <div className={styles.actions}>
         <NeonButton
