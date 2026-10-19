@@ -1,120 +1,86 @@
 # NeonSigils
 
-**A cyberpunk ASCII tech-logo guessing game.**
-Decode glitched glyphs from security, networking, self-hosting, homelabbing, IT, and general tech.
+A browser game where you identify tech logos rendered as ASCII art. 333 logos from security tooling, the self-hosting scene and general tech, each converted from SVG to text at build time.
 
-[![Live demo](https://img.shields.io/badge/play-live%20demo-00f5ff)](https://neonsigils.cybrsmr.xyz)
-[![License: MIT](https://img.shields.io/badge/license-MIT-ff2bd6)](./LICENSE)
-[![Built with Vite + React + TS](https://img.shields.io/badge/vite-react-ts-39ff14)](#tech-stack)
-
-**Play it:** [https://neonsigils.cybrsmr.xyz](https://neonsigils.cybrsmr.xyz)
-
-## Screenshots
+**[Play it at neonsigils.cybrsmr.xyz](https://neonsigils.cybrsmr.xyz)**
 
 | Home | Trivia | Hangman |
 | --- | --- | --- |
-| ![Home](screenshots/home.png) | ![Trivia](screenshots/trivia.png) | ![Hangman](screenshots/hangman.png) |
+| ![Home screen](screenshots/home.png) | ![Trivia round showing an ASCII logo and the answer box](screenshots/trivia.png) | ![Hangman round with a half-revealed logo and letter keyboard](screenshots/hangman.png) |
 
-## Features
+## How it plays
 
-- Two modes: **Trivia** (type the name) and **Hangman** (guess letter by letter)
-- **333 logos** across three categories, plus Mixed / Chaos
-- Four difficulties (Easy → Expert): timer, autocomplete, Hangman lives/reveal, scoring
-- Run modifiers: Sudden Death, Time Attack, Daily Challenge
-- Hints, alias matching, autocomplete, near-miss feedback
-- Local leaderboard (export / clear) and settings (sound, motion, difficulty, etc.)
-- Fully static — works offline once built
-- Keyboard-friendly, labelled controls, reduced-motion support
+- **Trivia**: an ASCII logo appears and you type its name before the timer runs out. Aliases count (`k8s` is Kubernetes), and close misses get a "near miss" instead of a flat wrong.
+- **Hangman**: guess the name letter by letter. Each correct letter wipes more of the logo into view; each wrong one costs a life.
+- **Difficulty** changes the puzzle, not only the timer. Harder levels render the logo at fewer columns with a coarser character ramp, hide the word length in Hangman, shorten the clock, and in Expert Hangman the logo slowly re-scrambles while you sit idle.
 
-## Categories
+| | Easy | Medium | Hard | Expert |
+| --- | --- | --- | --- | --- |
+| ASCII width | 56 cols | 46 cols | 36 cols | 28 cols |
+| Trivia timer | 30 s | 20 s | 15 s | 10 s |
+| Hangman lives | 6 | 6 | 5 | 4 |
+| Score multiplier | ×1.0 | ×1.2 | ×1.5 | ×2.0 |
 
-- `security-networking` (105) — pentest, VPN, firewall, identity (Nmap, Burp, Kali, WireGuard, …)
-- `selfhosting-homelab` (90) — Docker, Proxmox, Home Assistant, Jellyfin, *arr stack, …
-- `general-it-tech` (138) — languages, frameworks, cloud, Linux distros, brands, gaming
+There are also run modifiers (Sudden Death, Time Attack), a Daily Challenge that gives everyone the same seeded set of logos each day, hints that trade score for help, and a local leaderboard.
 
-**Full icon archive (333)**
+## How the ASCII art is made
 
-<details>
-<summary><strong>Security & Networking (105)</strong></summary>
+Nothing is drawn by hand at runtime. A build-time pipeline in [`scripts/`](scripts) turns SVG logos into strings that ship inside the JS bundle:
 
-AdGuard · Aircrack-ng · Auth0 · Authelia · authentik · Bash Bunny · Binwalk · Bitdefender · Bitwarden · BloodHound · Brave · Burp Suite · Check Point · Cilium · Cisco · Cloudflare · CrowdStrike · Cryptomator · Datadog · DuckDuckGo · Duo Security · Elastic · F5 · Falco · Fastly · ffuf · Firefox · Flipper Zero · Fortinet · Ghidra · GnuPG · Gobuster · Graylog · Hack The Box · Hak5 · HAProxy · Hashcat · Headscale · John the Ripper · Juniper Networks · Kali Linux · Kaspersky · KeePassXC · Keycloak · Kibana · LastPass · Let's Encrypt · LibreWolf · Maltego · Malwarebytes · Masscan · Metasploit · MikroTik · mitmproxy · Mullvad · NetBird · Netgear · Nikto · Nmap · Nuclei · O.MG Cable · Okta · OpenSSL · OpenVPN · OpenWrt · OPNsense · OWASP ZAP · Palo Alto Networks · Parrot OS · pfSense · Proton VPN · Qualys · Qubes OS · Radare2 · Shodan · Signal · Snort · Snyk · SonarQube · SonicWall · Sophos · Splunk · sqlmap · Tails · Tailscale · Tenable · THC-Hydra · Tor · TP-Link · Trivy · TryHackMe · Twingate · Ubiquiti · USB Rubber Ducky · Vault · VirusTotal · Wazuh · WiFi Pineapple · WireGuard · Wireshark · Wiz · WPScan · YubiKey · ZeroTier · Zitadel
+1. **Resolve an SVG** for each logo by trying sources in order: a local override in `scripts/svg-thesvg/`, the [Simple Icons](https://simpleicons.org/) npm package, [dashboard-icons](https://github.com/homarr-labs/dashboard-icons), [selfh.st/icons](https://selfh.st/icons/), and finally a hand-drawn fallback in `scripts/svg-manual/`.
+2. **Rasterize** it with [sharp](https://sharp.pixelplumbing.com/) at a column count set by difficulty. Rows are halved because a monospace cell is about twice as tall as it is wide.
+3. **Map luminance to characters** using the ramp ` .:-=+*#%@` (or the shorter ` .:+#@` on Hard and Expert, which makes shapes blockier and harder to read).
+4. **Validate** the result: every logo needs at least two hints, a known category and non-empty art.
 
-</details>
+The output is [`src/data/logos.generated.ts`](src/data/logos.generated.ts). The deployed site makes no requests to icon CDNs.
 
-<details>
-<summary><strong>Selfhosting & Homelabbing (90)</strong></summary>
+## Stack
 
-AdGuard Home · Audiobookshelf · Bazarr · Beszel · Blocky · BookStack · BorgBackup · Caddy · Calibre-Web · CasaOS · Cloudflare Tunnel · Cockpit · Docker · Dockge · Duplicati · Eclipse Mosquitto · Emby · ESPHome · File Browser · Firefly III · Forgejo · FreshRSS · Frigate · Ghost · Gitea · Glances · Gotify · Grafana · Heimdall · Homarr · Home Assistant · Homepage · Immich · InfluxDB · Invidious · Jellyfin · Jellyseerr · Jitsi · Joplin · Kavita · Kopia · LibreNMS · Lidarr · Matomo · Mattermost · Mealie · MinIO · Navidrome · Netdata · Nextcloud · Nginx · Nginx Proxy Manager · Node-RED · ntfy · NZBGet · Obsidian · OpenMediaVault · Paperless-ngx · PhotoPrism · Pi-hole · Piwigo · Plex · Portainer · Prometheus · Prowlarr · Proxmox · qBittorrent · Radarr · Runtipi · SABnzbd · Seafile · Sonarr · Stirling PDF · Syncthing · Tautulli · Technitium DNS · Traefik · Transmission · Trilium Notes · TrueNAS · Umami · Unbound · Unraid · Uptime Kuma · Vaultwarden · Vikunja · Watchtower · Wiki.js · Zabbix · Zigbee2MQTT
+- React 18, TypeScript, Vite
+- Plain CSS with custom properties and CSS Modules
+- `localStorage` for settings and the leaderboard; there is no backend and no account system
+- Hosted on Cloudflare Pages, with Cloudflare Web Analytics for page-view counts (no cookies)
 
-</details>
-
-<details>
-<summary><strong>General IT / Tech (138)</strong></summary>
-
-Adobe · Affinity · AlmaLinux · Amazon Web Services · AMD · Android · Angular · Ansible · Apple · Arch Linux · Astro · ASUS ROG · Atlassian · Binance · Bootstrap · Bun · C++ · CachyOS · CentOS · Coinbase · Corsair · CSS3 · Dart · DaVinci Resolve · Debian · Dell · Deno · Discord · Django · Dropbox · Elasticsearch · Elgato · Epic Games · ESLint · Express · Facebook · Fedora · Figma · Firebase · Flask · FreeBSD · Git · GitHub · GitHub Actions · GitLab · GNOME · Go · Google · Google Cloud · GraphQL · HP · HTML5 · Instagram · Intel · Java · JavaScript · Jenkins · Jira · jQuery · KDE · Kotlin · Kubernetes · Laravel · Lenovo · LinkedIn · Linux · Linux Mint · Logitech · MariaDB · Meta · Microsoft · MongoDB · MSI · MySQL · Neovim · Netflix · Netlify · Next.js · Node.js · Notion · npm · Nuxt · NVIDIA · Oculus · Oracle · PayPal · PHP · PlayStation · Podman · PostgreSQL · Prettier · Prisma · Proton · Python · PyTorch · React · Red Hat · Reddit · Redis · Redux · Rocky Linux · Ruby · Ruby on Rails · Rust · Salesforce · Samsung · Sass · Shopify · Slack · Spotify · Spring Boot · SQLite · Steam · Stripe · Supabase · Svelte · Swift · Tailwind CSS · TCL · Telegram · TensorFlow · Terraform · Tesla · TikTok · Twitch · TypeScript · Ubuntu · Valve · Vercel · Vite · Vue.js · Webpack · WhatsApp · X · Xbox · Yarn · YouTube · Zoom
-
-</details>
-
-## Tech stack
-
-- Vite + React + TypeScript
-- Plain CSS (variables + modules)
-- LocalStorage for settings and leaderboard
-- Build-time SVG → ASCII pipeline (`sharp`, `simple-icons`)
-- No backend, no accounts. Page views are counted with Cloudflare Web Analytics
-
-## Local development
+## Running it locally
 
 ```bash
 npm install
-npm run dev        # start the dev server
-npm run build      # typecheck + production build to dist/
-npm run preview    # preview the production build
+npm run dev
 ```
 
-## Deployment
+Other scripts:
 
-Hosted on Cloudflare Pages at [neonsigils.cybrsmr.xyz](https://neonsigils.cybrsmr.xyz). Production branch `main`, build command `npm run build`, output directory `dist`, `NODE_VERSION` `24`. `public/_headers` is copied into that build. Routing is internal state, so no SPA redirect is required.
+| Command | What it does |
+| --- | --- |
+| `npm run build` | Type-check and build to `dist/` |
+| `npm run preview` | Serve the production build |
+| `npm run assets` | Fetch SVGs, regenerate the ASCII data, validate it |
 
-## Adding logos
+The generated logo data is committed, so you only need `npm run assets` after adding or changing logos. If the generated file is missing, the app falls back to a small sample set in `src/data/sampleLogos.ts`.
 
-1. Add an entry under `src/data/logos/` (`security.ts`, `selfhosting.ts`, or `general.ts`) with `id`, `name`, `aliases`, `category`, `difficulty`, `tags`, `hints` (≥ 2), and `sourceCandidates`.
-2. Run the asset pipeline (`npm run assets`).
-3. Validate: `npm run validate-logos`.
+## Adding a logo
 
-Icon sources are tried in order at **build time** only (`scripts/fetch-icons.ts`):
+1. Add an entry to the right file in [`src/data/logos/`](src/data/logos) with an `id`, `name`, `aliases`, `difficulty`, `tags`, at least two `hints`, and `sourceCandidates`.
+2. Run `npm run assets`.
+3. If no source has the brand, draw a simple monochrome SVG in `scripts/svg-manual/` (see the [README there](scripts/svg-manual/README.md)).
 
-1. **[theSVG](https://thesvg.org/)** — override in `scripts/svg-thesvg/<slug>.svg` (prefer `mono`)
-2. **[Simple Icons](https://simpleicons.org/)** — offline npm package
-3. **[dashboard-icons](https://github.com/homarr-labs/dashboard-icons)** — CDN (self-hosted brands)
-4. **[selfh.st/icons](https://selfh.st/icons/)** — CDN
-5. **manual** — hand-authored SVG in `scripts/svg-manual/`
-
-Resolved SVGs land in `scripts/svg/`; the deployed game never fetches them.
-
-## Generating assets
-
-```bash
-npm run fetch-icons      # resolve SVGs -> scripts/svg/
-npm run generate-ascii   # rasterize -> src/data/logos.generated.ts
-npm run validate-logos   # integrity checks
-# or all three:
-npm run assets
-```
-
-If the pipeline has not been run, the app falls back to `src/data/sampleLogos.ts`.
-
-## Legal / trademark disclaimer
-
-NeonSigils is an educational / fan-made tech-logo guessing game. All brand names, logos, and trademarks belong to their respective owners. NeonSigils is not affiliated with, endorsed by, or sponsored by any of those brands. Logos are transformed into ASCII art for quiz and educational purposes. See the in-app **Archive / Legal** page for details.
-
-## Project structure
+## Project layout
 
 ```
-neon-sigils/
-  scripts/          # SVG -> ASCII pipeline (dev only)
-  src/
-    components/     # layout, game, hangman
-    data/           # categories, logos/, generated assets
-    hooks/ pages/ styles/ types/ utils/
+scripts/            build-time SVG → ASCII pipeline (not shipped)
+src/
+  components/       layout, shared game UI, hangman pieces
+  data/             categories, logo definitions, generated ASCII
+  hooks/            game session, settings, sound
+  pages/            one component per screen
+  utils/            scoring, hints, answer matching, seeded RNG
+public/_headers     security headers for Cloudflare Pages
 ```
+
+## Trademarks
+
+NeonSigils is a fan-made quiz. Every brand name and logo belongs to its owner, and none of them endorse or sponsor this project. Logos appear only as low-resolution ASCII renderings for the purpose of the game. More detail is on the in-app Archive page.
+
+## License
+
+[MIT](LICENSE) for the code. The license does not cover the third-party logos.
