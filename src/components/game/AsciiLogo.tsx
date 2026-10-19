@@ -1,9 +1,10 @@
 import { useMemo } from "react"
+import type { AsciiFrame } from "../../utils/asciiTransform"
 import styles from "./AsciiLogo.module.css"
 
 export type AsciiLogoProps = {
   lines: string[]
-  variant?: "clean" | "glitched" | "cropped" | "lowRes"
+  variant?: AsciiFrame
   /** 0..100, used for the accessible status label. */
   revealPercent?: number
   animated?: boolean
@@ -16,12 +17,11 @@ const variantClass: Record<NonNullable<AsciiLogoProps["variant"]>, string> = {
   clean: "",
   glitched: styles.glitched,
   cropped: styles.cropped,
-  lowRes: "",
 }
 
 /**
  * Renders ASCII art in a whitespace-preserving <pre>. Purely presentational:
- * the parent decides which frame (clean / glitched / a reveal stage) to pass.
+ * the parent decides which frame (clean / glitched / cropped) to pass.
  */
 export const AsciiLogo = ({
   lines,

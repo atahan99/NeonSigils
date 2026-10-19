@@ -1,5 +1,4 @@
 import { useRouter } from "../router"
-import { usingGeneratedData } from "../data/logos"
 import { ModeCard } from "../components/game/ModeCard"
 import { NeonButton } from "../components/layout/NeonButton"
 import styles from "./HomePage.module.css"
@@ -51,12 +50,6 @@ export const HomePage = () => {
           Archive
         </NeonButton>
       </div>
-
-      {!usingGeneratedData && (
-        <p className={styles.note}>
-          Running sample sigils — run the asset pipeline for the full archive.
-        </p>
-      )}
     </div>
   )
 }

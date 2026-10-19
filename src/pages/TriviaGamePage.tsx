@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
 import { useSound } from "../hooks/useSound"
@@ -10,9 +10,10 @@ import type { Difficulty } from "../types/logo"
 import {
   isTimeAttack,
   startLivesFor,
-  timeAttackSecondsRemaining,
+  timeAttackDurationSeconds,
 } from "../utils/gameSession"
 import { isNearMiss } from "../utils/normalizeAnswer"
+import { asciiFrame, type AsciiFrame } from "../utils/asciiTransform"
 import { buildGameSummary } from "../utils/runSummary"
 import { tuningFor } from "../data/difficultyTuning"
 import { getPlayCategoryName } from "../data/categories"
@@ -25,7 +26,7 @@ import { AnswerInput } from "../components/game/AnswerInput"
 import { HintPanel } from "../components/game/HintPanel"
 import styles from "./TriviaGamePage.module.css"
 
-type Frame = { variant: "clean" | "glitched" | "cropped"; animated: boolean }
+type Frame = { variant: AsciiFrame; animated: boolean }
 
 const FRAME_BY_DIFFICULTY: Record<Difficulty, Frame> = {
   easy: { variant: "clean", animated: false },
@@ -86,12 +87,16 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
   }
 
 
-  const timeAttackSeconds = timeAttackSecondsRemaining(state)
+  const timeAttackSeconds = timeAttackDurationSeconds(state)
   const hudCountdown = timeAttack ? timeAttackSeconds : countdownSeconds
   const hudTimerStart = timeAttack ? state.startedAt : undefined
   const hudOnTimeout = timeAttack ? finishRun : g.timeout
 
   const frame = FRAME_BY_DIFFICULTY[config.difficulty]
+  const asciiLines = useMemo(
+    () => (currentLogo ? asciiFrame(currentLogo, frame.variant) : []),
+    [currentLogo, frame.variant],
+  )
   const title = `${getPlayCategoryName(config.category)} // Trivia`
 
   return (
@@ -123,7 +128,7 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
           <>
             <div className={styles.ascii}>
               <AsciiLogo
-                lines={currentLogo.ascii[frame.variant]}
+                lines={asciiLines}
                 variant={frame.variant}
                 animated={frame.animated}
                 size="lg"

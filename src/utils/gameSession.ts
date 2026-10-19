@@ -1,5 +1,4 @@
 import type { GameConfig, GameSessionState, HintState } from "../types/game"
-import type { LogoEntry } from "../types/logo"
 import { logosForCategoryAndDifficulty } from "../data/logos"
 import { tuningFor, TIME_ATTACK_MS } from "../data/difficultyTuning"
 import { createRng, shuffle } from "./random"
@@ -62,8 +61,8 @@ export const createSession = (config: GameConfig): GameSessionState => {
 /** Whether this run is a Time Attack (bounded by a clock, not a round count). */
 export const isTimeAttack = (state: GameSessionState): boolean => state.deadline != null
 
-/** Total Time Attack duration in seconds from run start. */
-export const timeAttackSecondsRemaining = (state: GameSessionState): number | undefined => {
+/** Total Time Attack duration in seconds, counted from run start. */
+export const timeAttackDurationSeconds = (state: GameSessionState): number | undefined => {
   if (!isTimeAttack(state) || state.deadline == null) return undefined
   return Math.max(0, Math.round((state.deadline - state.startedAt) / 1000))
 }
@@ -121,8 +120,3 @@ export const advanceLogo = (state: GameSessionState): GameSessionState => {
 /** Seconds elapsed on the current question. */
 export const elapsedSeconds = (state: GameSessionState): number =>
   (Date.now() - state.questionStartedAt) / 1000
-
-export const currentLogoOrThrow = (state: GameSessionState): LogoEntry => {
-  if (!state.currentLogo) throw new Error("No current logo in session")
-  return state.currentLogo
-}

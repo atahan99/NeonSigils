@@ -1,16 +1,8 @@
 import type { Difficulty, LogoEntry, PlayCategoryId } from "../types/logo"
 import { GENERATED_LOGOS } from "./logos.generated"
-import { SAMPLE_LOGOS } from "./sampleLogos"
 
-/**
- * Single source of truth for logo data at runtime.
- * Prefers generated ASCII (real assets) and falls back to the hand-authored
- * sample set when the pipeline hasn't been run yet.
- */
-export const ALL_LOGOS: LogoEntry[] =
-  GENERATED_LOGOS.length > 0 ? GENERATED_LOGOS : SAMPLE_LOGOS
-
-export const usingGeneratedData = GENERATED_LOGOS.length > 0
+/** Single source of truth for logo data at runtime (built by `npm run assets`). */
+export const ALL_LOGOS: LogoEntry[] = GENERATED_LOGOS
 
 /** Filter logos for a play category ("mixed" returns everything). */
 export const logosForCategory = (category: PlayCategoryId): LogoEntry[] =>

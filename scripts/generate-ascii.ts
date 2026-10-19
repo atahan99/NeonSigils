@@ -1,17 +1,16 @@
 /**
  * generate-ascii.ts — rasterize resolved SVGs into ASCII and emit game data.
  *
- * Reads scripts/svg/<id>.svg + scripts/.cache/provenance.json, produces the
- * five ASCII variants per logo (clean/glitched/cropped/lowRes/revealStages),
- * and writes src/data/logos.generated.ts. Deterministic: the seed is the logo
- * id, so ASCII is stable across builds.
+ * Reads scripts/svg/<id>.svg + scripts/.cache/provenance.json, renders clean
+ * ASCII per logo, and writes src/data/logos.generated.ts. The glitched and
+ * cropped frames are derived in the browser (src/utils/asciiTransform.ts).
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { LOGO_SOURCES } from "../src/data/logoSources"
-import type { AsciiVariants, LogoEntry } from "../src/types/logo"
-import { cropLines, glitchLines, padLines } from "../src/utils/asciiTransform"
+import type { LogoEntry } from "../src/types/logo"
+import { padLines } from "../src/utils/asciiTransform"
 import { svgToAsciiLines } from "./lib/svgToAscii"
 import type { Provenance } from "./fetch-icons"
 
@@ -27,18 +26,6 @@ const loadProvenance = (): Map<string, Provenance> => {
   return new Map(list.map((p) => [p.id, p]))
 }
 
-// Only the variants the app actually renders: clean (Hangman + Trivia easy),
-// glitched (Trivia medium/expert), cropped (Trivia hard). The old lowRes /
-// revealStages frames are no longer emitted to keep the bundle small.
-const buildVariants = (clean: string[], seed: string): AsciiVariants => {
-  const padded = padLines(clean)
-  return {
-    clean: padded,
-    glitched: glitchLines(padded, 0.2, `${seed}:g`),
-    cropped: cropLines(padded, 0.62),
-  }
-}
-
 const main = async (): Promise<void> => {
   const provenance = loadProvenance()
   const entries: LogoEntry[] = []
@@ -51,7 +38,7 @@ const main = async (): Promise<void> => {
     }
     const svg = readFileSync(svgPath)
     const clean = await svgToAsciiLines(svg, source.difficulty)
-    const ascii = buildVariants(clean, source.id)
+    const ascii = padLines(clean)
     const prov = provenance.get(source.id)
 
     entries.push({

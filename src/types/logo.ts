@@ -44,16 +44,6 @@ export type LogoSource = {
   hints: string[]
 }
 
-export type AsciiVariants = {
-  clean: string[]
-  glitched: string[]
-  cropped: string[]
-  // Optional legacy variants. Hangman now uses a CSS mask over `clean`, so these
-  // are no longer emitted by the generator (kept optional for sample data / tools).
-  lowRes?: string[]
-  revealStages?: string[][]
-}
-
 export type LogoSourceInfo = {
   provider?: IconProvider
   slug?: string
@@ -69,7 +59,8 @@ export type LogoEntry = {
   category: CategoryId
   difficulty: Difficulty
   tags: string[]
-  ascii: AsciiVariants
+  /** Clean ASCII art, padded to a rectangle. Other frames: asciiFrame(). */
+  ascii: string[]
   hints: string[]
   source?: LogoSourceInfo
 }

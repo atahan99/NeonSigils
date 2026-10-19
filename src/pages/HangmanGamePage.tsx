@@ -22,7 +22,7 @@ import { HangmanFigure } from "../components/hangman/HangmanFigure"
 import {
   isTimeAttack,
   startLivesFor,
-  timeAttackSecondsRemaining,
+  timeAttackDurationSeconds,
   totalRounds,
 } from "../utils/gameSession"
 import { resolveHintText } from "../utils/hints"
@@ -57,10 +57,11 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const tuning = tuningFor(config.difficulty)
   const maxLives = startLivesFor(config)
 
+  // Score at the start of this sigil, for the "+N pts" in the result modal.
+  // Keyed on roundNumber only: it must not move while the round is scored.
   const roundBaseScore = useRef(0)
   useEffect(() => {
     roundBaseScore.current = state.score
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.roundNumber])
 
   const decay = g.decay
@@ -83,7 +84,7 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const isLast = isOver || !g.canContinue
   const pointsDelta = Math.max(0, state.score - roundBaseScore.current)
 
-  const asciiLines = logo.ascii.clean
+  const asciiLines = logo.ascii
   const revealPct = solved ? 100 : state.revealPercent
   const maskBackground = [
     `linear-gradient(135deg, transparent ${revealPct - 1}%, rgba(0,245,255,0.6) ${revealPct}%, transparent ${revealPct + 2}%)`,
@@ -120,7 +121,7 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   }
 
   const timeAttack = isTimeAttack(state)
-  const timeAttackSeconds = timeAttackSecondsRemaining(state)
+  const timeAttackSeconds = timeAttackDurationSeconds(state)
 
   return (
     <div className={styles.page}>

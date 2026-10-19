@@ -51,14 +51,6 @@
   gap: var(--space-3);
 }
 
-.note {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  opacity: 0.7;
-  text-align: center;
-}
-
 @media (max-width: 720px) {
   .modes {
     grid-template-columns: 1fr;
