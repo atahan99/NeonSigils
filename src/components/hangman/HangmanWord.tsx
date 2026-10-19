@@ -44,7 +44,9 @@ export const HangmanWord = ({
               </span>
             )
           }
-          const revealed = solved || guessedLetters.includes(ch.toLowerCase())
+          // Digits are pre-revealed: the on-screen keyboard is letters only.
+          const revealed =
+            solved || /[0-9]/.test(ch) || guessedLetters.includes(ch.toLowerCase())
           return (
             <span key={i} className={cn(styles.slot, revealed && styles.revealed)}>
               {revealed ? ch.toUpperCase() : "_"}

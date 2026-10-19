@@ -659,7 +659,7 @@ export const SECURITY_SOURCES: LogoSource[] = [
   {
     id: "elastic",
     name: "Elastic",
-    aliases: ["elasticsearch", "elk"],
+    aliases: ["elk"],
     category: "security-networking",
     difficulty: "medium",
     tags: ["search", "siem", "logs"],

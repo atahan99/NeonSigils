@@ -68,7 +68,8 @@ export const AnswerInput = ({
 
   // Re-focus the field when a new question re-enables it (modal releases focus).
   useEffect(() => {
-    if (!disabled) inputRef.current?.focus()
+    // preventScroll: focusing must not scroll the logo out of view.
+    if (!disabled) inputRef.current?.focus({ preventScroll: true })
   }, [disabled])
 
   const clear = () => {
@@ -142,7 +143,6 @@ export const AnswerInput = ({
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          autoFocus
           role="combobox"
           aria-expanded={listVisible}
           aria-controls="answer-suggestions"

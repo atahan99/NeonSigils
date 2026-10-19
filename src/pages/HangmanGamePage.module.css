@@ -4,10 +4,11 @@
   width: 100%;
 }
 
+/* Spacing is kept tight so the whole round fits one laptop screen. */
 .grid {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-3);
 }
 
 /* Row 1: stats */
@@ -34,7 +35,7 @@
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
-  padding: var(--space-3);
+  padding: var(--space-2);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
   background: rgba(3, 4, 12, 0.5);
@@ -62,7 +63,7 @@
 .controls {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-3);
 }
 
 .actions {

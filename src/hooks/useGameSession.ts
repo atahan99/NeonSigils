@@ -28,6 +28,7 @@ type Action =
   | { type: "hangman-letter"; letter: string }
   | { type: "hint"; kind: HintKind }
   | { type: "decay" }
+  | { type: "forfeit" }
   | { type: "next" }
 
 const clampReveal = (v: number): number => Math.min(100, Math.max(0, v))
@@ -131,7 +132,8 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
         }
       }
 
-      // wrong letter: costs a life + a small score penalty, reveals nothing
+      // wrong letter: costs a life + a small score penalty, reveals nothing.
+      // wrongCount counts failed sigils (as in trivia), not wrong letters.
       const lives = state.lives - 1
       return {
         ...state,
@@ -140,7 +142,7 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
         lives,
         score: Math.max(0, state.score - HANGMAN_WRONG_PENALTY),
         streak: 0,
-        wrongCount: state.wrongCount + 1,
+        wrongCount: lives <= 0 ? state.wrongCount + 1 : state.wrongCount,
         lastResult: "wrong",
         status: lives <= 0 ? "gameover" : "playing",
       }
@@ -176,6 +178,17 @@ const reducer = (state: GameSessionState, action: Action): GameSessionState => {
       return { ...state, revealPercent: next }
     }
 
+    case "forfeit":
+      // Quitting mid-question counts as a miss and ends the run.
+      if (state.status !== "playing") return { ...state, status: "gameover" }
+      return {
+        ...state,
+        streak: 0,
+        wrongCount: state.wrongCount + 1,
+        lastResult: "wrong",
+        status: "gameover",
+      }
+
     case "next":
       return advanceLogo(state)
 
@@ -199,6 +212,7 @@ export const useGameSession = (config: GameConfig) => {
   const timeout = useCallback(() => dispatch({ type: "trivia-timeout" }), [])
   const decay = useCallback(() => dispatch({ type: "decay" }), [])
   const next = useCallback(() => dispatch({ type: "next" }), [])
+  const forfeit = useCallback(() => dispatch({ type: "forfeit" }), [])
   const restart = useCallback(
     (nextConfig?: GameConfig) => dispatch({ type: "reset", config: nextConfig ?? config }),
     [config],
@@ -215,6 +229,7 @@ export const useGameSession = (config: GameConfig) => {
     timeout,
     decay,
     next,
+    forfeit,
     restart,
     canContinue,
   }

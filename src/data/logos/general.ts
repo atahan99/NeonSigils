@@ -1014,7 +1014,7 @@ export const GENERAL_SOURCES: LogoSource[] = [
   {
     id: "elasticsearch",
     name: "Elasticsearch",
-    aliases: ["elastic search", "elastic"],
+    aliases: ["elastic search"],
     category: "general-it-tech",
     difficulty: "medium",
     tags: ["search", "database", "analytics"],

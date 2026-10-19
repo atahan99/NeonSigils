@@ -17,9 +17,9 @@ import { buildGameSummary } from "../utils/runSummary"
 import { tuningFor } from "../data/difficultyTuning"
 import { getPlayCategoryName } from "../data/categories"
 import { NeonPanel } from "../components/layout/NeonPanel"
-import { NeonButton } from "../components/layout/NeonButton"
 import { AsciiLogo } from "../components/game/AsciiLogo"
 import { ResultModal } from "../components/game/ResultModal"
+import { QuitButton } from "../components/game/QuitButton"
 import { GameHUD } from "../components/game/GameHUD"
 import { AnswerInput } from "../components/game/AnswerInput"
 import { HintPanel } from "../components/game/HintPanel"
@@ -85,7 +85,6 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
     g.next()
   }
 
-  const handleQuit = () => navigate("home")
 
   const timeAttackSeconds = timeAttackSecondsRemaining(state)
   const hudCountdown = timeAttack ? timeAttackSeconds : countdownSeconds
@@ -152,9 +151,7 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
         )}
 
         <div className={styles.footer}>
-          <NeonButton variant="ghost" size="sm" onClick={handleQuit}>
-            Quit
-          </NeonButton>
+          <QuitButton size="sm" onQuit={g.forfeit} />
         </div>
       </div>
 

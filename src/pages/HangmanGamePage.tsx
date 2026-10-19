@@ -11,6 +11,7 @@ import { ScorePanel } from "../components/game/ScorePanel"
 import { LivesPanel } from "../components/game/LivesPanel"
 import { Timer } from "../components/game/Timer"
 import { ResultModal } from "../components/game/ResultModal"
+import { QuitButton } from "../components/game/QuitButton"
 import { NeonPanel } from "../components/layout/NeonPanel"
 import { NeonButton } from "../components/layout/NeonButton"
 import { RevealMeter } from "../components/hangman/RevealMeter"
@@ -107,7 +108,6 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
 
   const handleBoostReveal = () => g.useHint("reveal")
   const handleDecryptHint = () => g.useHint("text")
-  const handleQuit = () => navigate("home")
 
   const finishRun = () => navigate("game-over", { summary: buildGameSummary(state, "hangman") })
 
@@ -208,9 +208,7 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
               >
                 Decrypt Hint
               </NeonButton>
-              <NeonButton variant="ghost" onClick={handleQuit}>
-                Quit
-              </NeonButton>
+              <QuitButton onQuit={g.forfeit} />
             </div>
           </div>
         </div>

@@ -2,7 +2,8 @@ import type { LogoEntry } from "../types/logo"
 
 /**
  * Normalize a user-typed answer for comparison: lowercase, strip accents,
- * expand "&" to "and", then remove everything that isn't a-z0-9.
+ * expand "&", "+" and "#" to words (so "C++" never collapses to "c"), then
+ * remove everything that isn't a-z0-9.
  * This makes "Burp Suite", "burpsuite", and "burp-suite" all collapse to
  * the same token.
  */
@@ -11,6 +12,8 @@ export const normalizeAnswer = (value: string): string =>
     .toLowerCase()
     .normalize("NFKD")
     .replace(/&/g, "and")
+    .replace(/\+/g, "plus")
+    .replace(/#/g, "sharp")
     .replace(/[\u0300-\u036f]/g, "") // strip combining diacritical marks
     .replace(/[^a-z0-9]/g, "")
 

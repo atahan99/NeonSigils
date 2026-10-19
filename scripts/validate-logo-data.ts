@@ -6,6 +6,7 @@ import { GENERATED_LOGOS } from "../src/data/logos.generated"
 import { SAMPLE_LOGOS } from "../src/data/sampleLogos"
 import type { LogoEntry } from "../src/types/logo"
 import { acceptedTokens, normalizeAnswer } from "../src/utils/normalizeAnswer"
+import { guessableChars } from "../src/utils/hangman"
 
 const errors: string[] = []
 const warnings: string[] = []
@@ -17,6 +18,9 @@ const label = GENERATED_LOGOS.length > 0 ? "generated" : "sample (fallback)"
 
 const seenIds = new Set<string>()
 const namesByCategory = new Map<string, Set<string>>()
+// Every accepted answer must identify exactly one logo, or typing it scores
+// for the wrong one.
+const tokenOwner = new Map<string, string>()
 
 for (const logo of dataset) {
   const tag = logo.id || "<no-id>"
@@ -59,6 +63,15 @@ for (const logo of dataset) {
     errors.push(`${tag}: an alias normalizes to empty`)
   if (normalizeAnswer(logo.name).length === 0)
     errors.push(`${tag}: name normalizes to empty`)
+  for (const t of tokens) {
+    const owner = tokenOwner.get(t)
+    if (owner && owner !== logo.id) errors.push(`${tag}: answer "${t}" also accepted for ${owner}`)
+    else tokenOwner.set(t, logo.id)
+  }
+
+  // Hangman needs at least one letter to guess (digits are pre-revealed).
+  if (guessableChars(logo.name).length === 0)
+    errors.push(`${tag}: name has no letters to guess in Hangman`)
 
   // Track category name duplicates.
   const set = namesByCategory.get(logo.category) ?? new Set<string>()

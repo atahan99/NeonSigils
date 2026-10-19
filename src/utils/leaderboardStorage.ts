@@ -1,25 +1,64 @@
 import type { LeaderboardEntry } from "../types/leaderboard"
+import { CATEGORIES } from "../data/categories"
 
 const STORAGE_KEY = "neonsigils.leaderboard.v1"
+const MAX_ENTRIES = 500
+const MAX_NAME_LENGTH = 24
+
+const CATEGORY_IDS = new Set<string>([...CATEGORIES.map((c) => c.id), "mixed"])
+const MODES = new Set(["trivia", "hangman"])
+const DIFFICULTIES = new Set(["easy", "medium", "hard", "expert"])
+
+const isCount = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0
+
+// localStorage is user-editable, so a stored entry is untrusted until it has
+// the exact shape the leaderboard renders. Bad entries are dropped, not fatal.
+const isEntry = (e: unknown): e is LeaderboardEntry => {
+  if (typeof e !== "object" || e === null) return false
+  const r = e as Record<string, unknown>
+  return (
+    typeof r.id === "string" &&
+    typeof r.playerName === "string" &&
+    typeof r.createdAt === "string" &&
+    !Number.isNaN(Date.parse(r.createdAt)) &&
+    MODES.has(r.mode as string) &&
+    CATEGORY_IDS.has(r.category as string) &&
+    DIFFICULTIES.has(r.difficulty as string) &&
+    [r.score, r.correctCount, r.wrongCount, r.accuracy, r.longestStreak, r.durationSeconds].every(isCount) &&
+    (r.grade === undefined || typeof r.grade === "string") &&
+    (r.modifiers === undefined || Array.isArray(r.modifiers))
+  )
+}
 
 const safeParse = (raw: string | null): LeaderboardEntry[] => {
   if (!raw) return []
   try {
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as LeaderboardEntry[]) : []
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter(isEntry)
+      .map((e) => ({ ...e, playerName: e.playerName.slice(0, MAX_NAME_LENGTH) }))
   } catch {
     return []
   }
 }
 
+// Access can throw (storage blocked, quota full, private mode); the game keeps
+// working without a saved leaderboard rather than crashing.
 export const loadLeaderboard = (): LeaderboardEntry[] => {
-  if (typeof localStorage === "undefined") return []
-  return safeParse(localStorage.getItem(STORAGE_KEY))
+  try {
+    return safeParse(localStorage.getItem(STORAGE_KEY))
+  } catch {
+    return []
+  }
 }
 
 const persist = (entries: LeaderboardEntry[]): void => {
-  if (typeof localStorage === "undefined") return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  } catch {
+    /* storage unavailable; entry is lost but the run summary still shows */
+  }
 }
 
 const createId = (): string =>
@@ -33,30 +72,20 @@ export const addLeaderboardEntry = (
     id: createId(),
     createdAt: new Date().toISOString(),
   }
-  const entries = loadLeaderboard()
-  entries.push(full)
-  persist(entries)
+  persist(sortByScore([...loadLeaderboard(), full]).slice(0, MAX_ENTRIES))
   return full
 }
 
 export const clearLeaderboard = (): void => {
-  if (typeof localStorage === "undefined") return
-  localStorage.removeItem(STORAGE_KEY)
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 export const exportLeaderboard = (): string =>
   JSON.stringify(loadLeaderboard(), null, 2)
-
-/** Import a JSON string of entries, merging with existing ones (dedup by id). */
-export const importLeaderboard = (json: string): number => {
-  const incoming = safeParse(json)
-  if (incoming.length === 0) return 0
-  const existing = loadLeaderboard()
-  const byId = new Map(existing.map((e) => [e.id, e]))
-  for (const entry of incoming) byId.set(entry.id, entry)
-  persist([...byId.values()])
-  return incoming.length
-}
 
 export const sortByScore = (entries: LeaderboardEntry[]): LeaderboardEntry[] =>
   [...entries].sort((a, b) => b.score - a.score)

@@ -131,7 +131,7 @@ export const SELFHOSTING_SOURCES: LogoSource[] = [
   {
     id: "adguardhome",
     name: "AdGuard Home",
-    aliases: ["adguard", "adguard home", "ad guard"],
+    aliases: ["adguard home"],
     category: "selfhosting-homelab",
     difficulty: "medium",
     tags: ["dns", "adblock"],
@@ -822,7 +822,7 @@ export const SELFHOSTING_SOURCES: LogoSource[] = [
   {
     id: "nginxproxymanager",
     name: "Nginx Proxy Manager",
-    aliases: ["npm", "nginx-proxy-manager"],
+    aliases: ["nginx-proxy-manager"],
     category: "selfhosting-homelab",
     difficulty: "medium",
     tags: ["proxy", "networking", "ui"],

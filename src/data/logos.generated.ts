@@ -3694,7 +3694,6 @@ export const GENERATED_LOGOS: LogoEntry[] = [
     "id": "elastic",
     "name": "Elastic",
     "aliases": [
-      "elasticsearch",
       "elk"
     ],
     "category": "security-networking",
@@ -7523,9 +7522,7 @@ export const GENERATED_LOGOS: LogoEntry[] = [
     "id": "adguardhome",
     "name": "AdGuard Home",
     "aliases": [
-      "adguard",
-      "adguard home",
-      "ad guard"
+      "adguard home"
     ],
     "category": "selfhosting-homelab",
     "difficulty": "medium",
@@ -13170,7 +13167,6 @@ export const GENERATED_LOGOS: LogoEntry[] = [
     "id": "nginxproxymanager",
     "name": "Nginx Proxy Manager",
     "aliases": [
-      "npm",
       "nginx-proxy-manager"
     ],
     "category": "selfhosting-homelab",
@@ -22608,8 +22604,7 @@ export const GENERATED_LOGOS: LogoEntry[] = [
     "id": "elasticsearch",
     "name": "Elasticsearch",
     "aliases": [
-      "elastic search",
-      "elastic"
+      "elastic search"
     ],
     "category": "general-it-tech",
     "difficulty": "medium",

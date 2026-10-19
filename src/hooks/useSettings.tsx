@@ -22,12 +22,31 @@ export const DEFAULT_SETTINGS: Settings = {
   roundLength: 10,
 }
 
+// Allowed values for the non-boolean settings; anything else falls back to the default.
+const CHOICES: Partial<Record<keyof Settings, readonly unknown[]>> = {
+  animationIntensity: ["low", "normal", "high"],
+  difficulty: ["easy", "medium", "hard", "expert"],
+  roundLength: [10, 20, "endless"],
+}
+
+// Stored settings are user-editable, so each key is checked against the
+// default's type (and allowed values) instead of being spread in blindly.
 const loadSettings = (): Settings => {
-  if (typeof localStorage === "undefined") return DEFAULT_SETTINGS
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return DEFAULT_SETTINGS
-    return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) }
+    const stored: unknown = JSON.parse(raw)
+    if (typeof stored !== "object" || stored === null) return DEFAULT_SETTINGS
+    const next: Record<string, unknown> = { ...DEFAULT_SETTINGS }
+    for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
+      const value = (stored as Record<string, unknown>)[key]
+      const ok = CHOICES[key]
+        ? CHOICES[key].includes(value)
+        : typeof value === typeof DEFAULT_SETTINGS[key]
+      if (ok) next[key] = value
+    }
+    next.playerName = (next.playerName as string).slice(0, 24)
+    return next as Settings
   } catch {
     return DEFAULT_SETTINGS
   }
