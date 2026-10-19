@@ -8,7 +8,7 @@ export const useRequireConfig = (): GameConfig | undefined => {
   const config = params.config
 
   useEffect(() => {
-    if (!config) navigate("home")
+    if (!config) navigate("home", {}, { replace: true })
   }, [config, navigate])
 
   return config

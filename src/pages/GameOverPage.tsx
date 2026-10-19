@@ -17,7 +17,7 @@ export const GameOverPage = () => {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    if (!summary) navigate("home")
+    if (!summary) navigate("home", {}, { replace: true })
   }, [summary, navigate])
 
   if (!summary) return null

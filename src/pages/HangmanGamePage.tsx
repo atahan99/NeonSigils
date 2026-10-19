@@ -110,7 +110,9 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const handleBoostReveal = () => g.useHint("reveal")
   const handleDecryptHint = () => g.useHint("text")
 
-  const finishRun = () => navigate("game-over", { summary: buildGameSummary(state, "hangman") })
+  // replace: Back from results should not restart the finished run.
+  const finishRun = () =>
+    navigate("game-over", { summary: buildGameSummary(state, "hangman") }, { replace: true })
 
   const handleNext = () => {
     if (isLast) {

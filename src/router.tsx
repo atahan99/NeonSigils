@@ -2,8 +2,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react"
@@ -28,52 +28,84 @@ export type RouteParams = {
   mode?: GameMode
   config?: GameConfig
   summary?: GameSummary
-  savedEntryId?: string
 }
 
-type HistoryEntry = { route: RouteName; params: RouteParams }
+type Location = { route: RouteName; params: RouteParams }
 
-type RouterContextValue = {
-  route: RouteName
-  params: RouteParams
-  navigate: (route: RouteName, params?: RouteParams) => void
-  back: () => void
+type NavigateOptions = {
+  /** Replace the current history entry instead of adding one (redirects). */
+  replace?: boolean
+}
+
+type RouterContextValue = Location & {
+  navigate: (route: RouteName, params?: RouteParams, options?: NavigateOptions) => void
+}
+
+// Hash paths keep the site a static bundle with no server rewrite rules.
+// Only the route and play mode live in the URL; game config and results ride
+// in history.state, so refresh and Back keep them but a shared link starts clean.
+const PATHS: Record<RouteName, string> = {
+  home: "/",
+  "category-select": "/play",
+  trivia: "/trivia",
+  hangman: "/hangman",
+  "game-over": "/results",
+  leaderboard: "/leaderboard",
+  settings: "/settings",
+  about: "/about",
+}
+
+export const hashFor = (route: RouteName, params: RouteParams = {}): string =>
+  route === "category-select" && params.mode
+    ? `#/play/${params.mode}`
+    : `#${PATHS[route]}`
+
+export const parseHash = (hash: string): Location => {
+  const path = hash.replace(/^#/, "") || "/"
+  const play = /^\/play\/(trivia|hangman)$/.exec(path)
+  if (play) return { route: "category-select", params: { mode: play[1] as GameMode } }
+  const route = (Object.keys(PATHS) as RouteName[]).find((r) => PATHS[r] === path)
+  return { route: route ?? "home", params: {} }
+}
+
+const isLocation = (value: unknown): value is Location =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof (value as Location).route === "string" &&
+  (value as Location).route in PATHS
+
+// history.state wins when it belongs to the current hash (refresh, Back);
+// otherwise the hash alone decides (typed or shared links).
+const readLocation = (): Location => {
+  const fromHash = parseHash(window.location.hash)
+  const state: unknown = window.history.state
+  return isLocation(state) && state.route === fromHash.route ? state : fromHash
 }
 
 const RouterContext = createContext<RouterContextValue | null>(null)
 
 export const RouterProvider = ({ children }: { children: ReactNode }) => {
-  const [route, setRoute] = useState<RouteName>("home")
-  const [params, setParams] = useState<RouteParams>({})
-  const [, setHistory] = useState<HistoryEntry[]>([])
-  const currentRef = useRef({ route, params })
-  currentRef.current = { route, params }
+  const [location, setLocation] = useState<Location>(readLocation)
 
-  const navigate = useCallback((next: RouteName, nextParams: RouteParams = {}) => {
-    setHistory((h) => [...h, currentRef.current])
-    setRoute(next)
-    setParams(nextParams)
-    window.scrollTo({ top: 0 })
+  useEffect(() => {
+    const onPop = () => setLocation(readLocation())
+    window.addEventListener("popstate", onPop)
+    return () => window.removeEventListener("popstate", onPop)
   }, [])
 
-  const back = useCallback(() => {
-    setHistory((h) => {
-      if (h.length === 0) {
-        setRoute("home")
-        setParams({})
-        return h
-      }
-      const prev = h[h.length - 1]
-      setRoute(prev.route)
-      setParams(prev.params)
-      return h.slice(0, -1)
-    })
-  }, [])
-
-  const value = useMemo(
-    () => ({ route, params, navigate, back }),
-    [route, params, navigate, back],
+  const navigate = useCallback(
+    (route: RouteName, params: RouteParams = {}, options: NavigateOptions = {}) => {
+      const next = { route, params }
+      const url = hashFor(route, params)
+      if (options.replace) window.history.replaceState(next, "", url)
+      else window.history.pushState(next, "", url)
+      setLocation(next)
+      window.scrollTo({ top: 0 })
+    },
+    [],
   )
+
+  const value = useMemo(() => ({ ...location, navigate }), [location, navigate])
 
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>
 }

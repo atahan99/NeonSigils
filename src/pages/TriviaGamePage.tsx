@@ -76,7 +76,9 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
     g.submitAnswer(value)
   }
 
-  const finishRun = () => navigate("game-over", { summary: buildGameSummary(state, "trivia") })
+  // replace: Back from results should not restart the finished run.
+  const finishRun = () =>
+    navigate("game-over", { summary: buildGameSummary(state, "trivia") }, { replace: true })
 
   const handleNext = () => {
     if (isLast) {
