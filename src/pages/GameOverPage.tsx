@@ -3,7 +3,8 @@ import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
 import { getPlayCategoryName } from "../data/categories"
 import { addLeaderboardEntry } from "../utils/leaderboardStorage"
-import { formatAccuracy, formatDuration } from "../utils/format"
+import { formatAccuracy, formatDifficulty, formatDuration } from "../utils/format"
+import { dailyShareText } from "../utils/runSummary"
 import { NeonPanel } from "../components/layout/NeonPanel"
 import { NeonButton } from "../components/layout/NeonButton"
 import styles from "./GameOverPage.module.css"
@@ -12,9 +13,11 @@ export const GameOverPage = () => {
   const { navigate, params } = useRouter()
   const { settings } = useSettings()
   const summary = params.summary
+  // Lives in history.state, so a refresh or Back can't save the same run twice.
+  const saved = params.saved === true
 
   const [playerName, setPlayerName] = useState(settings.playerName)
-  const [saved, setSaved] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!summary) navigate("home", {}, { replace: true })
@@ -37,8 +40,18 @@ export const GameOverPage = () => {
       durationSeconds: summary.durationSeconds,
       grade: summary.grade,
       modifiers: summary.modifiers,
+      scope: summary.scope,
     })
-    setSaved(true)
+    navigate("game-over", { ...params, saved: true }, { replace: true })
+  }
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(dailyShareText(summary))
+      setCopied(true)
+    } catch {
+      /* clipboard blocked; the button just doesn't confirm */
+    }
   }
 
   const modifierLabels: Record<string, string> = {
@@ -51,7 +64,7 @@ export const GameOverPage = () => {
   const stats: { label: string; value: string }[] = [
     { label: "Mode", value: summary.mode },
     { label: "Category", value: getPlayCategoryName(summary.category) },
-    { label: "Difficulty", value: summary.difficulty },
+    { label: "Difficulty", value: formatDifficulty(summary.difficulty, summary.scope) },
     { label: "Correct", value: String(summary.correctCount) },
     { label: "Wrong", value: String(summary.wrongCount) },
     { label: "Accuracy", value: formatAccuracy(summary.accuracy) },
@@ -124,6 +137,11 @@ export const GameOverPage = () => {
       </div>
 
       <div className={styles.actions}>
+        {summary.daily && (
+          <NeonButton variant="green" onClick={handleShare}>
+            {copied ? "Copied to Clipboard" : "Share Daily Result"}
+          </NeonButton>
+        )}
         <NeonButton
           variant="magenta"
           onClick={() => navigate("category-select", { mode: summary.mode })}

@@ -24,11 +24,16 @@ export const startLivesFor = (config: GameConfig): number => {
 export const initialReveal = (config: GameConfig): number =>
   config.mode === "hangman" ? tuningFor(config.difficulty).hmStartReveal : 0
 
-/** Build a fresh, shuffled session for the given config. */
-export const createSession = (config: GameConfig): GameSessionState => {
-  const rng = config.seed ? createRng(config.seed) : Math.random
-  const pool = shuffle(logosForCategoryAndDifficulty(config.category, config.difficulty), rng)
-  const now = Date.now()
+/**
+ * Build a fresh, shuffled session for the given config. `now` is passed in so
+ * the reducer stays pure; it also seeds the shuffle when there is no daily seed.
+ */
+export const createSession = (config: GameConfig, now: number): GameSessionState => {
+  const rng = createRng(config.seed ?? now)
+  const pool = shuffle(
+    logosForCategoryAndDifficulty(config.category, config.difficulty, config.scope),
+    rng,
+  )
   const first = pool[0] ?? null
   const deadline = hasModifier(config, "timeAttack") ? now + TIME_ATTACK_MS : null
   return {
@@ -55,6 +60,7 @@ export const createSession = (config: GameConfig): GameSessionState => {
     attempts: 0,
     deadline,
     timedOut: false,
+    results: [],
   }
 }
 
@@ -76,8 +82,8 @@ export const totalRounds = (state: GameSessionState): number => {
 }
 
 /** Whether the run has more logos to serve after the current one. */
-export const hasNextLogo = (state: GameSessionState): boolean => {
-  if (isTimeAttack(state)) return Date.now() < (state.deadline ?? 0)
+export const hasNextLogo = (state: GameSessionState, now: number): boolean => {
+  if (isTimeAttack(state)) return now < (state.deadline ?? 0)
   const limit = totalRounds(state)
   if (state.roundNumber >= limit) return false
   return state.currentIndex + 1 < state.pool.length
@@ -87,15 +93,15 @@ export const hasNextLogo = (state: GameSessionState): boolean => {
  * Advance to the next logo, resetting per-question fields. In Time Attack the
  * pool wraps and reshuffles so play continues until the deadline.
  */
-export const advanceLogo = (state: GameSessionState): GameSessionState => {
-  if (!hasNextLogo(state)) {
+export const advanceLogo = (state: GameSessionState, now: number): GameSessionState => {
+  if (!hasNextLogo(state, now)) {
     return { ...state, status: "gameover" }
   }
   let pool = state.pool
   let nextIndex = state.currentIndex + 1
   if (nextIndex >= pool.length) {
     // Only reachable in Time Attack: reshuffle and wrap.
-    pool = shuffle(state.pool)
+    pool = shuffle(state.pool, createRng(`${state.startedAt}:${state.roundNumber}`))
     nextIndex = 0
   }
   const nextLogo = pool[nextIndex]
@@ -105,7 +111,7 @@ export const advanceLogo = (state: GameSessionState): GameSessionState => {
     currentIndex: nextIndex,
     currentLogo: nextLogo,
     roundNumber: state.roundNumber + 1,
-    questionStartedAt: Date.now(),
+    questionStartedAt: now,
     hint: emptyHint(),
     guessedLetters: [],
     wrongLetters: [],
@@ -118,5 +124,5 @@ export const advanceLogo = (state: GameSessionState): GameSessionState => {
 }
 
 /** Seconds elapsed on the current question. */
-export const elapsedSeconds = (state: GameSessionState): number =>
-  (Date.now() - state.questionStartedAt) / 1000
+export const elapsedSeconds = (state: GameSessionState, now: number): number =>
+  (now - state.questionStartedAt) / 1000

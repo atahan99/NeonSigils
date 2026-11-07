@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useGameSession } from "../hooks/useGameSession"
 import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
@@ -26,6 +26,7 @@ import {
   totalRounds,
 } from "../utils/gameSession"
 import { resolveHintText } from "../utils/hints"
+import { renderAt, renderDifficulty } from "../utils/asciiTransform"
 import { buildGameSummary } from "../utils/runSummary"
 import { tuningFor, DECAY_TICK_MS } from "../data/difficultyTuning"
 import { getPlayCategoryName } from "../data/categories"
@@ -60,9 +61,14 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   // Score at the start of this sigil, for the "+N pts" in the result modal.
   // Keyed on roundNumber only: it must not move while the round is scored.
   const roundBaseScore = useRef(0)
+  const { score, roundNumber } = state
   useEffect(() => {
-    roundBaseScore.current = state.score
-  }, [state.roundNumber])
+    roundBaseScore.current = score
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on a new round
+  }, [roundNumber])
+
+  const look = renderDifficulty(config.difficulty, config.scope)
+  const asciiLines = useMemo(() => (logo ? renderAt(logo, look) : []), [logo, look])
 
   const decay = g.decay
   const decayActive =
@@ -84,14 +90,12 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
   const isLast = isOver || !g.canContinue
   const pointsDelta = Math.max(0, state.score - roundBaseScore.current)
 
-  const asciiLines = logo.ascii
   const revealPct = solved ? 100 : state.revealPercent
   const maskBackground = [
     `linear-gradient(135deg, transparent ${revealPct - 1}%, rgba(0,245,255,0.6) ${revealPct}%, transparent ${revealPct + 2}%)`,
     `linear-gradient(135deg, rgba(157,78,221,0) 0 ${revealPct}%, rgba(157,78,221,0.16) ${revealPct}% 100%)`,
     `linear-gradient(135deg, rgba(10,14,32,0) 0 ${revealPct}%, rgb(10,14,32) ${revealPct}% 100%)`,
   ].join(", ")
-  const wrongCount = state.wrongLetters.length
 
   const lastGuess = state.guessedLetters[state.guessedLetters.length - 1]
   const feedback = lastGuess
@@ -170,7 +174,7 @@ const HangmanGame = ({ config }: HangmanGameProps) => {
               <RevealMeter percent={state.revealPercent} />
             </div>
 
-            <HangmanFigure wrong={wrongCount} maxWrong={maxLives} />
+            <HangmanFigure lives={state.lives} maxLives={maxLives} />
           </div>
 
           <div className={styles.controls}>
@@ -235,7 +239,7 @@ export const HangmanGamePage = () => {
 
   return (
     <HangmanGame
-      key={`${config.category}-${config.difficulty}-${config.roundLength}-${config.modifiers.join(",")}`}
+      key={`${config.category}-${config.difficulty}-${config.scope}-${config.roundLength}-${config.modifiers.join(",")}`}
       config={config}
     />
   )

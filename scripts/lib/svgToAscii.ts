@@ -1,34 +1,17 @@
 import sharp from "sharp"
-import type { Difficulty } from "../../src/types/logo"
-
-// ASCII ramps: index 0 = background (space), last = densest ink.
-export const RAMP_FULL = " .:-=+*#%@"
-export const RAMP_SHORT = " .:+#@"
-
-// Target column widths per difficulty (rows derived from aspect ratio).
-export const DIFFICULTY_COLS: Record<Difficulty, number> = {
-  easy: 56,
-  medium: 46,
-  hard: 36,
-  expert: 28,
-}
-
-const rampFor = (difficulty: Difficulty): string =>
-  difficulty === "hard" || difficulty === "expert" ? RAMP_SHORT : RAMP_FULL
+import { RAMP_FULL, SOURCE_COLS } from "../../src/utils/asciiTransform"
 
 /**
- * Rasterize a monochrome SVG and convert it to ASCII art.
+ * Rasterize a monochrome SVG and convert it to ASCII art at the source width
+ * (the easy width, full ramp). Harder widths are resampled in the browser.
  *
  * The source SVGs are single-color shapes on a transparent background, so the
  * alpha channel is the shape coverage ("ink"). We render onto a white canvas,
  * read grayscale, and invert so dark ink maps to the densest ramp characters.
  */
-export const svgToAsciiLines = async (
-  svg: string | Buffer,
-  difficulty: Difficulty,
-): Promise<string[]> => {
-  const cols = DIFFICULTY_COLS[difficulty]
-  const ramp = rampFor(difficulty)
+export const svgToAsciiLines = async (svg: string | Buffer): Promise<string[]> => {
+  const cols = SOURCE_COLS
+  const ramp = RAMP_FULL
 
   // Monospace glyphs are ~2x taller than wide; halve the row count so the
   // rendered art keeps its real aspect ratio.

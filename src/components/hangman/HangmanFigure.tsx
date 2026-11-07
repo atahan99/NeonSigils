@@ -1,10 +1,11 @@
 import styles from "./HangmanFigure.module.css"
 
 type HangmanFigureProps = {
-  /** Number of wrong guesses so far (0..maxWrong). */
-  wrong: number
-  maxWrong: number
+  lives: number
+  maxLives: number
 }
+
+const PARTS = 6
 
 // Build the gallows ASCII, adding one body part per wrong guess.
 const buildGallows = (wrong: number): string[] => {
@@ -30,18 +31,21 @@ const buildGallows = (wrong: number): string[] => {
  * Classic hangman gallows, themed as a "trace lock": each wrong guess
  * (Corruption) assembles another part of the suspended operator.
  */
-export const HangmanFigure = ({ wrong, maxWrong }: HangmanFigureProps) => {
-  const lines = buildGallows(wrong)
-  const tone = wrong >= maxWrong - 1 ? styles.danger : wrong >= 3 ? styles.warn : ""
+export const HangmanFigure = ({ lives, maxLives }: HangmanFigureProps) => {
+  // Lives carry across sigils, so the figure tracks lives lost in the run and
+  // scales to the six body parts whatever the starting lives are.
+  const lost = Math.max(0, maxLives - lives)
+  const lines = buildGallows(Math.ceil((lost / maxLives) * PARTS))
+  const tone = lives <= 1 ? styles.danger : lost / maxLives >= 0.5 ? styles.warn : ""
 
   return (
     <div className={styles.figure}>
       <pre className={`${styles.pre} ${tone}`} aria-hidden="true">
         {lines.join("\n")}
       </pre>
-      <span className={styles.caption}>Trace {wrong}/{maxWrong}</span>
+      <span className={styles.caption}>Trace {lost}/{maxLives}</span>
       <span className="sr-only">
-        Hangman trace: {wrong} of {maxWrong} wrong guesses used.
+        Hangman trace: {lost} of {maxLives} lives lost.
       </span>
     </div>
   )

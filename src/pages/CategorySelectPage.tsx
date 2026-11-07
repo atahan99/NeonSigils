@@ -2,10 +2,10 @@ import { useState } from "react"
 import { useRouter } from "../router"
 import { useSettings } from "../hooks/useSettings"
 import { CATEGORIES, MIXED_CATEGORY } from "../data/categories"
-import { countForCategory } from "../data/logos"
+import { logosForCategoryAndDifficulty } from "../data/logos"
 import { CategoryCard } from "../components/game/CategoryCard"
 import { NeonButton } from "../components/layout/NeonButton"
-import type { GameConfig, GameMode, Modifier, RoundLength } from "../types/game"
+import type { DifficultyScope, GameConfig, GameMode, Modifier, RoundLength } from "../types/game"
 import type { Difficulty, PlayCategoryId } from "../types/logo"
 import styles from "./CategorySelectPage.module.css"
 
@@ -14,6 +14,12 @@ const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "expert"]
 const MODIFIER_OPTIONS: { value: Modifier; label: string; note: string }[] = [
   { value: "suddenDeath", label: "Sudden Death", note: "1 life, x1.5 score" },
   { value: "timeAttack", label: "Time Attack", note: "60s, endless sigils" },
+]
+
+const SCOPE_OPTIONS: { value: DifficultyScope; label: string; note: string }[] = [
+  { value: "both", label: "Both", note: "Obscure logos, rendered rough. Full score bonus." },
+  { value: "logos", label: "Logos", note: "Obscure logos, rendered clean. Half the score bonus." },
+  { value: "render", label: "Rendering", note: "Any logo, rendered rough. Half the score bonus." },
 ]
 
 const todaySeed = (): string => `daily-${new Date().toISOString().slice(0, 10)}`
@@ -42,6 +48,7 @@ export const CategorySelectPage = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>(settings.difficulty)
   const [roundLength, setRoundLength] = useState<RoundLength>(settings.roundLength)
   const [modifiers, setModifiers] = useState<Modifier[]>([])
+  const [scope, setScope] = useState<DifficultyScope>("both")
 
   const toggleModifier = (value: Modifier) =>
     setModifiers((prev) =>
@@ -49,7 +56,7 @@ export const CategorySelectPage = () => {
     )
 
   const handleSelectCategory = (category: PlayCategoryId) => {
-    const config: GameConfig = { mode, category, difficulty, roundLength, modifiers }
+    const config: GameConfig = { mode, category, difficulty, roundLength, modifiers, scope }
     navigate(config.mode, { config })
   }
 
@@ -95,6 +102,29 @@ export const CategorySelectPage = () => {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className={styles.field}>
+          <span className={styles.label} id="scope-label">
+            Difficulty Affects
+          </span>
+          <div className={styles.toggleRow} role="group" aria-labelledby="scope-label">
+            {SCOPE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`${styles.toggle} ${scope === option.value ? styles.toggleActive : ""}`}
+                aria-pressed={scope === option.value}
+                aria-describedby="scope-note"
+                onClick={() => setScope(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <span className={styles.note} id="scope-note">
+            {SCOPE_OPTIONS.find((o) => o.value === scope)?.note}
+          </span>
         </div>
 
         <div className={styles.field}>
@@ -158,7 +188,7 @@ export const CategorySelectPage = () => {
             shortName={cat.shortName}
             tagline={cat.tagline}
             accent={cat.accent}
-            count={countForCategory(cat.id)}
+            count={logosForCategoryAndDifficulty(cat.id, difficulty, scope).length}
             onSelect={() => handleSelectCategory(cat.id)}
           />
         ))}

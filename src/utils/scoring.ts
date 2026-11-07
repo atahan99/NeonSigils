@@ -1,5 +1,5 @@
 import type { Difficulty, PlayCategoryId } from "../types/logo"
-import type { HintKind, HintState, Modifier } from "../types/game"
+import type { GameConfig, HintKind, HintState, Modifier } from "../types/game"
 
 export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
   easy: 1.0,
@@ -22,11 +22,21 @@ export const categoryMultiplier = (category: PlayCategoryId): number =>
 export const modifierMultiplier = (modifiers: Modifier[]): number =>
   modifiers.reduce((m, mod) => m * (MODIFIER_MULTIPLIER[mod] ?? 1), 1)
 
-/** Combined non-difficulty multiplier (category prestige + modifiers). */
+/**
+ * When difficulty only drives one of logo choice or rendering, the run earns
+ * half of the difficulty bonus. Returned as a factor on DIFFICULTY_MULTIPLIER.
+ */
+export const scopeFactor = (config: Pick<GameConfig, "difficulty" | "scope">): number => {
+  if ((config.scope ?? "both") === "both") return 1
+  const full = DIFFICULTY_MULTIPLIER[config.difficulty]
+  return (1 + (full - 1) / 2) / full
+}
+
+/** Combined non-difficulty multiplier (category prestige, modifiers, scope). */
 export const extraMultiplier = (
-  category: PlayCategoryId,
-  modifiers: Modifier[],
-): number => categoryMultiplier(category) * modifierMultiplier(modifiers)
+  config: Pick<GameConfig, "category" | "modifiers" | "difficulty" | "scope">,
+): number =>
+  categoryMultiplier(config.category) * modifierMultiplier(config.modifiers) * scopeFactor(config)
 
 export const STREAK_BONUS_PER = 10
 export const DEFAULT_STREAK_CAP = 50
@@ -45,13 +55,14 @@ export const timeBucketPoints = (elapsedSeconds: number): number => {
 
 const HINT_PENALTY: Partial<Record<HintKind, number>> = {
   text: 0.2,
+  alias: 0.2,
   firstLetter: 0.3,
   reveal: 0.4,
 }
 
 /**
  * Apply hint rules to a base score:
- *  - text -20%, first-letter -30%, reveal -40% (penalties stack, capped 60%)
+ *  - text and alias -20%, first-letter -30%, reveal -40% (penalties stack, capped 60%)
  *  - multiple-choice caps the max score at 40
  */
 const applyHintRules = (base: number, hint: HintState): number => {

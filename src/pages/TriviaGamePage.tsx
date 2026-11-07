@@ -13,7 +13,7 @@ import {
   timeAttackDurationSeconds,
 } from "../utils/gameSession"
 import { isNearMiss } from "../utils/normalizeAnswer"
-import { asciiFrame, type AsciiFrame } from "../utils/asciiTransform"
+import { asciiFrame, renderAt, renderDifficulty, type AsciiFrame } from "../utils/asciiTransform"
 import { buildGameSummary } from "../utils/runSummary"
 import { tuningFor } from "../data/difficultyTuning"
 import { getPlayCategoryName } from "../data/categories"
@@ -94,10 +94,11 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
   const hudTimerStart = timeAttack ? state.startedAt : undefined
   const hudOnTimeout = timeAttack ? finishRun : g.timeout
 
-  const frame = FRAME_BY_DIFFICULTY[config.difficulty]
+  const look = renderDifficulty(config.difficulty, config.scope)
+  const frame = FRAME_BY_DIFFICULTY[look]
   const asciiLines = useMemo(
-    () => (currentLogo ? asciiFrame(currentLogo, frame.variant) : []),
-    [currentLogo, frame.variant],
+    () => (currentLogo ? asciiFrame(renderAt(currentLogo, look), currentLogo.id, frame.variant) : []),
+    [currentLogo, look, frame.variant],
   )
   const title = `${getPlayCategoryName(config.category)} // Trivia`
 
@@ -151,6 +152,8 @@ const TriviaGame = ({ config }: { config: GameConfig }) => {
               usedKinds={state.hint.usedKinds}
               onUseHint={g.useHint}
               difficulty={config.difficulty}
+              showCategory={config.category === "mixed"}
+              disabled={!isPlaying}
             />
           </>
         ) : (
@@ -180,7 +183,7 @@ export const TriviaGamePage = () => {
 
   return (
     <TriviaGame
-      key={`${config.category}-${config.difficulty}-${config.roundLength}-${config.modifiers.join(",")}`}
+      key={`${config.category}-${config.difficulty}-${config.scope}-${config.roundLength}-${config.modifiers.join(",")}`}
       config={config}
     />
   )

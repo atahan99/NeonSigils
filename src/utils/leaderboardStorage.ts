@@ -8,6 +8,7 @@ const MAX_NAME_LENGTH = 24
 const CATEGORY_IDS = new Set<string>([...CATEGORIES.map((c) => c.id), "mixed"])
 const MODES = new Set(["trivia", "hangman"])
 const DIFFICULTIES = new Set(["easy", "medium", "hard", "expert"])
+const SCOPES = new Set(["both", "logos", "render"])
 
 const isCount = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0
 
@@ -26,7 +27,8 @@ const isEntry = (e: unknown): e is LeaderboardEntry => {
     DIFFICULTIES.has(r.difficulty as string) &&
     [r.score, r.correctCount, r.wrongCount, r.accuracy, r.longestStreak, r.durationSeconds].every(isCount) &&
     (r.grade === undefined || typeof r.grade === "string") &&
-    (r.modifiers === undefined || Array.isArray(r.modifiers))
+    (r.modifiers === undefined || Array.isArray(r.modifiers)) &&
+    (r.scope === undefined || SCOPES.has(r.scope as string))
   )
 }
 

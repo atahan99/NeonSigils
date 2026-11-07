@@ -99,3 +99,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+.note {
+  max-width: 32ch;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
