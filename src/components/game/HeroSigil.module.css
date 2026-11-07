@@ -1,0 +1,12 @@
+.sigil {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(0.62rem, 1.6vw, 0.95rem);
+  line-height: 1.05;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(0, 245, 255, 0.35));
+  user-select: none;
+}

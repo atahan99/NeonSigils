@@ -7,6 +7,10 @@ export type RoundLength = 10 | 20 | "endless"
 // Optional run modifiers, layered on top of a mode + difficulty.
 export type Modifier = "suddenDeath" | "timeAttack" | "daily"
 
+// What difficulty changes: which logos appear, how degraded they render, or both.
+// Timers, lives and hint limits always follow difficulty.
+export type DifficultyScope = "both" | "logos" | "render"
+
 export type AnimationIntensity = "low" | "normal" | "high"
 
 // Which kind of hint was used, for scoring penalties.
@@ -24,6 +28,8 @@ export type GameConfig = {
   difficulty: Difficulty
   roundLength: RoundLength
   modifiers: Modifier[]
+  // Missing on configs saved before the toggle existed; treated as "both".
+  scope?: DifficultyScope
   // Deterministic shuffle seed (used by the Daily challenge).
   seed?: string
 }
@@ -65,7 +71,11 @@ export type GameSessionState = {
   deadline: number | null
   // Set when the current question was lost to the countdown running out.
   timedOut: boolean
+  // Outcome of every resolved sigil, in order (drives the Daily share grid).
+  results: RoundResult[]
 }
+
+export type RoundResult = "correct" | "wrong"
 
 export type Settings = {
   playerName: string

@@ -20,6 +20,14 @@ const HangmanGamePage = lazy(() =>
   import("./pages/HangmanGamePage").then((m) => ({ default: m.HangmanGamePage })),
 )
 
+// Shown while a lazy page and the logo archive download; reserves space so the
+// footer doesn't jump up and back.
+const ArchiveLoading = () => (
+  <p className="archive-loading anim-flicker" role="status">
+    Decrypting archive…
+  </p>
+)
+
 const CurrentPage = () => {
   const { route } = useRouter()
   switch (route) {
@@ -48,7 +56,7 @@ export const App = () => (
   <SettingsProvider>
     <RouterProvider>
       <AppShell>
-        <Suspense fallback={null}>
+        <Suspense fallback={<ArchiveLoading />}>
           <CurrentPage />
         </Suspense>
       </AppShell>

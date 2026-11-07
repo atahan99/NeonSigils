@@ -66,7 +66,9 @@
   border-color: var(--panel-border-strong);
 }
 
-.toggleActive {
+/* Also on hover, or the light hover text vanishes on the cyan fill. */
+.toggleActive,
+.toggleActive:hover {
   color: var(--bg-main);
   background: var(--neon-cyan);
   border-color: var(--neon-cyan);
@@ -98,4 +100,10 @@
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+.note {
+  max-width: 32ch;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }

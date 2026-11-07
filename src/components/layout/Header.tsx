@@ -9,11 +9,12 @@ const GithubMark = () => (
   </svg>
 )
 
-const NAV: { label: string; route: RouteName }[] = [
-  { label: "Play", route: "home" },
-  { label: "Hall of Signals", route: "leaderboard" },
-  { label: "System Config", route: "settings" },
-  { label: "Archive", route: "about" },
+// `short` keeps the nav on one row on phones.
+const NAV: { label: string; short: string; route: RouteName }[] = [
+  { label: "Play", short: "Play", route: "home" },
+  { label: "Hall of Signals", short: "Scores", route: "leaderboard" },
+  { label: "System Config", short: "Config", route: "settings" },
+  { label: "Archive", short: "Archive", route: "about" },
 ]
 
 export const Header = () => {
@@ -41,8 +42,12 @@ export const Header = () => {
             size="sm"
             aria-current={route === item.route ? "page" : undefined}
             onClick={() => navigate(item.route)}
+            aria-label={item.label}
           >
-            {item.label}
+            <span className={styles.long}>{item.label}</span>
+            <span className={styles.short} aria-hidden="true">
+              {item.short}
+            </span>
           </NeonButton>
         ))}
         <a

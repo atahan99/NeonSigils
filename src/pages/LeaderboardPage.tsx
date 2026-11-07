@@ -10,7 +10,7 @@ import {
   sortByScore,
   sortByRecent,
 } from "../utils/leaderboardStorage"
-import { formatAccuracy, formatDuration } from "../utils/format"
+import { formatAccuracy, formatDifficulty, formatDuration } from "../utils/format"
 import type { LeaderboardEntry } from "../types/leaderboard"
 import type { GameMode } from "../types/game"
 import type { Difficulty, PlayCategoryId } from "../types/logo"
@@ -247,7 +247,7 @@ export const LeaderboardPage = () => {
                       <td data-label="Category">
                         {getPlayCategoryName(entry.category)}
                       </td>
-                      <td data-label="Diff">{entry.difficulty}</td>
+                      <td data-label="Diff">{formatDifficulty(entry.difficulty, entry.scope)}</td>
                       <td data-label="Acc">{formatAccuracy(entry.accuracy)}</td>
                       <td data-label="Streak">{entry.longestStreak}</td>
                       <td data-label="Time">

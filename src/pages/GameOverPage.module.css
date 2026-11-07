@@ -158,3 +158,16 @@
   gap: var(--space-3);
   justify-content: center;
 }
+
+.shareText {
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-main);
+  background: var(--bg-deep);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  resize: none;
+}

@@ -78,8 +78,22 @@
   text-align: center;
 }
 
+/* Phones: logo, word and keyboard stay together; the gallows drops below.
+   `display: contents` lets the logo and gallows join the outer column. */
 @media (max-width: 760px) {
   .mid {
-    grid-template-columns: 1fr;
+    display: contents;
+  }
+
+  .sigilFrame {
+    order: 1;
+  }
+
+  .controls {
+    order: 2;
+  }
+
+  .mid > :last-child {
+    order: 3;
   }
 }

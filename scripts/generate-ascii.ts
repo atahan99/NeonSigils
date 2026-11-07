@@ -37,7 +37,7 @@ const main = async (): Promise<void> => {
       continue
     }
     const svg = readFileSync(svgPath)
-    const clean = await svgToAsciiLines(svg, source.difficulty)
+    const clean = await svgToAsciiLines(svg)
     const ascii = padLines(clean)
     const prov = provenance.get(source.id)
 

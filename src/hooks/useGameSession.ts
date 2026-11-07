@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useReducer } from "react"
-import type { GameConfig, GameSessionState, HintKind } from "../types/game"
+import { useCallback, useReducer } from "react"
+import type { GameConfig, GameSessionState, HintKind, RoundResult } from "../types/game"
 import { isAnswerCorrect } from "../utils/normalizeAnswer"
 import { guessableChars, isSolved } from "../utils/hangman"
 import {
@@ -21,15 +21,22 @@ import {
 const DECAY_FLOOR = 15
 const HINT_REVEAL_BUMP = 20
 
+// Time-dependent actions carry `now` so the reducer stays pure (StrictMode
+// replays reducers, and tests can pin the clock).
 export type Action =
-  | { type: "reset"; config: GameConfig }
-  | { type: "trivia-answer"; guess: string }
+  | { type: "reset"; config: GameConfig; now: number }
+  | { type: "trivia-answer"; guess: string; now: number }
   | { type: "trivia-timeout" }
-  | { type: "hangman-letter"; letter: string }
+  | { type: "hangman-letter"; letter: string; now: number }
   | { type: "hint"; kind: HintKind }
   | { type: "decay" }
   | { type: "forfeit" }
-  | { type: "next" }
+  | { type: "next"; now: number }
+
+const record = (state: GameSessionState, result: RoundResult): RoundResult[] => [
+  ...state.results,
+  result,
+]
 
 const clampReveal = (v: number): number => Math.min(100, Math.max(0, v))
 
@@ -45,6 +52,7 @@ const loseLife = (
     wrongCount: state.wrongCount + 1,
     lastResult: "wrong",
     status: lives <= 0 ? "gameover" : "lost",
+    results: record(state, "wrong"),
     ...extra,
   }
 }
@@ -52,17 +60,17 @@ const loseLife = (
 export const reducer = (state: GameSessionState, action: Action): GameSessionState => {
   switch (action.type) {
     case "reset":
-      return createSession(action.config)
+      return createSession(action.config, action.now)
 
     case "trivia-answer": {
       if (state.status !== "playing" || !state.currentLogo) return state
       const tuning = tuningFor(state.config.difficulty)
-      const extra = extraMultiplier(state.config.category, state.config.modifiers)
+      const extra = extraMultiplier(state.config)
       const correct = isAnswerCorrect(action.guess, state.currentLogo)
       if (correct) {
         const streak = state.streak + 1
         const points = scoreTriviaAnswer({
-          elapsedSeconds: elapsedSeconds(state),
+          elapsedSeconds: elapsedSeconds(state, action.now),
           streak,
           difficulty: state.config.difficulty,
           hint: state.hint,
@@ -77,6 +85,7 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
           correctCount: state.correctCount + 1,
           lastResult: "correct",
           status: "won",
+          results: record(state, "correct"),
         }
       }
       // Wrong: allow a second attempt on lower difficulties before resolving.
@@ -100,7 +109,7 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
       const inWord = guessableChars(state.currentLogo.name).includes(letter)
 
       const tuning = tuningFor(state.config.difficulty)
-      const extra = extraMultiplier(state.config.category, state.config.modifiers)
+      const extra = extraMultiplier(state.config)
 
       if (inWord) {
         const reveal = clampReveal(state.revealPercent + tuning.hmRevealPerLetter)
@@ -116,7 +125,7 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
         const streak = state.streak + 1
         const bonus = scoreHangmanSolve({
           livesRemaining: state.lives,
-          elapsedSeconds: elapsedSeconds(state),
+          elapsedSeconds: elapsedSeconds(state, action.now),
           revealPercent: state.revealPercent,
           difficulty: state.config.difficulty,
           hint: state.hint,
@@ -129,6 +138,7 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
           longestStreak: Math.max(state.longestStreak, streak),
           correctCount: state.correctCount + 1,
           status: "won",
+          results: record(state, "correct"),
         }
       }
 
@@ -145,11 +155,12 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
         wrongCount: lives <= 0 ? state.wrongCount + 1 : state.wrongCount,
         lastResult: "wrong",
         status: lives <= 0 ? "gameover" : "playing",
+        results: lives <= 0 ? record(state, "wrong") : state.results,
       }
     }
 
     case "hint": {
-      if (!state.currentLogo) return state
+      if (state.status !== "playing" || !state.currentLogo) return state
       const usedKinds = state.hint.usedKinds.includes(action.kind)
         ? state.hint.usedKinds
         : [...state.hint.usedKinds, action.kind]
@@ -187,10 +198,11 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
         wrongCount: state.wrongCount + 1,
         lastResult: "wrong",
         status: "gameover",
+        results: record(state, "wrong"),
       }
 
     case "next":
-      return advanceLogo(state)
+      return advanceLogo(state, action.now)
 
     default:
       return state
@@ -198,27 +210,24 @@ export const reducer = (state: GameSessionState, action: Action): GameSessionSta
 }
 
 export const useGameSession = (config: GameConfig) => {
-  const [state, dispatch] = useReducer(reducer, config, createSession)
+  const [state, dispatch] = useReducer(reducer, config, (c) => createSession(c, Date.now()))
 
   const submitAnswer = useCallback(
-    (guess: string) => dispatch({ type: "trivia-answer", guess }),
+    (guess: string) => dispatch({ type: "trivia-answer", guess, now: Date.now() }),
     [],
   )
   const guessLetter = useCallback(
-    (letter: string) => dispatch({ type: "hangman-letter", letter }),
+    (letter: string) => dispatch({ type: "hangman-letter", letter, now: Date.now() }),
     [],
   )
   const useHint = useCallback((kind: HintKind) => dispatch({ type: "hint", kind }), [])
   const timeout = useCallback(() => dispatch({ type: "trivia-timeout" }), [])
   const decay = useCallback(() => dispatch({ type: "decay" }), [])
-  const next = useCallback(() => dispatch({ type: "next" }), [])
+  const next = useCallback(() => dispatch({ type: "next", now: Date.now() }), [])
   const forfeit = useCallback(() => dispatch({ type: "forfeit" }), [])
-  const restart = useCallback(
-    (nextConfig?: GameConfig) => dispatch({ type: "reset", config: nextConfig ?? config }),
-    [config],
-  )
 
-  const canContinue = useMemo(() => hasNextLogo(state), [state])
+  // Read at render time; in Time Attack this goes false once the clock runs out.
+  const canContinue = hasNextLogo(state, Date.now())
 
   return {
     state,
@@ -230,7 +239,6 @@ export const useGameSession = (config: GameConfig) => {
     decay,
     next,
     forfeit,
-    restart,
     canContinue,
   }
 }

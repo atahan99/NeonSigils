@@ -1,5 +1,5 @@
 import type { Difficulty, PlayCategoryId } from "./logo"
-import type { GameMode, Modifier } from "./game"
+import type { DifficultyScope, GameMode, Modifier } from "./game"
 
 export type LeaderboardEntry = {
   id: string
@@ -16,4 +16,5 @@ export type LeaderboardEntry = {
   createdAt: string
   grade?: string
   modifiers?: Modifier[]
+  scope?: DifficultyScope
 }

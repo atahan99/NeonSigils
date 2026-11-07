@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import type { GameConfig, GameMode } from "./types/game"
+import type { GameConfig, GameMode, RoundResult } from "./types/game"
 import type { LeaderboardEntry } from "./types/leaderboard"
 
 export type RouteName =
@@ -22,12 +22,18 @@ export type RouteName =
 
 // Summary passed to the Game Over screen (everything the leaderboard needs
 // except the player-chosen name + generated id/timestamp).
-export type GameSummary = Omit<LeaderboardEntry, "id" | "createdAt" | "playerName">
+export type GameSummary = Omit<LeaderboardEntry, "id" | "createdAt" | "playerName"> & {
+  results?: RoundResult[]
+  /** UTC date (YYYY-MM-DD) of a Daily Challenge run. */
+  daily?: string
+}
 
 export type RouteParams = {
   mode?: GameMode
   config?: GameConfig
   summary?: GameSummary
+  /** Set once the summary is on the leaderboard, so refresh/Back can't save it twice. */
+  saved?: boolean
 }
 
 type Location = { route: RouteName; params: RouteParams }

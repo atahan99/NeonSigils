@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import type { Difficulty, LogoEntry } from "../../types/logo"
 import type { HintKind } from "../../types/game"
-import { HINT_OPTIONS, resolveHintText, buildChoices } from "../../utils/hints"
+import { HINT_OPTIONS, resolveHintText, buildChoices, usefulAlias } from "../../utils/hints"
 import { NeonButton } from "../layout/NeonButton"
 import styles from "./HintPanel.module.css"
 
@@ -11,6 +11,10 @@ type HintPanelProps = {
   usedKinds: HintKind[]
   onUseHint: (kind: HintKind) => void
   difficulty: Difficulty
+  /** The category hint only helps in Mixed runs; elsewhere the player picked it. */
+  showCategory: boolean
+  /** True once the question is resolved. */
+  disabled: boolean
 }
 
 // Harder difficulties expose fewer hints. `null` means "all hints allowed".
@@ -29,6 +33,8 @@ export const HintPanel = ({
   usedKinds,
   onUseHint,
   difficulty,
+  showCategory,
+  disabled,
 }: HintPanelProps) => {
   const [revealed, setRevealed] = useState<RevealedHint[]>([])
   const [choices, setChoices] = useState<string[]>([])
@@ -40,9 +46,12 @@ export const HintPanel = ({
   }, [logo.id])
 
   const allowed = ALLOWED_BY_DIFFICULTY[difficulty]
-  const options = allowed
-    ? HINT_OPTIONS.filter((o) => allowed.includes(o.kind))
-    : HINT_OPTIONS
+  const options = HINT_OPTIONS.filter(
+    (o) =>
+      (!allowed || allowed.includes(o.kind)) &&
+      (o.kind !== "category" || showCategory) &&
+      (o.kind !== "alias" || usefulAlias(logo) !== undefined),
+  )
 
   const handleUseHint = (kind: HintKind) => {
     // Notify the session first so scoring penalties/caps apply.
@@ -66,7 +75,7 @@ export const HintPanel = ({
               key={option.kind}
               variant="ghost"
               size="sm"
-              disabled={used}
+              disabled={used || disabled}
               onClick={() => handleUseHint(option.kind)}
               aria-label={`${option.label} (${option.penaltyNote})`}
             >
