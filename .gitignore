@@ -11,3 +11,7 @@ dist-ssr
 # Build-time icon resolver cache (regenerable via `npm run assets`)
 scripts/svg/
 scripts/.cache/
+
+# Playwright output
+test-results/
+playwright-report/
