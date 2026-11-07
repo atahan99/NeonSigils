@@ -1,6 +1,7 @@
 import { useRouter } from "../router"
 import { ModeCard } from "../components/game/ModeCard"
 import { NeonButton } from "../components/layout/NeonButton"
+import { HeroSigil } from "../components/game/HeroSigil"
 import styles from "./HomePage.module.css"
 
 export const HomePage = () => {
@@ -12,14 +13,17 @@ export const HomePage = () => {
   return (
     <div className={`${styles.home} anim-fade-in`}>
       <header className={styles.hero}>
-        <h1 className={`glitch ${styles.title} anim-flicker`} data-text="NeonSigils">
-          NeonSigils
-        </h1>
-        <p className={styles.subtitle}>
-          Decode glitched glyphs from security, networking, self-hosting, homelabbing, and
-          general tech.
-        </p>
-        <p className={styles.tagline}>A cyberpunk ASCII tech-logo guessing game.</p>
+        <HeroSigil />
+        <div className={styles.heroText}>
+          <h1 className={`glitch ${styles.title} anim-flicker`} data-text="NeonSigils">
+            NeonSigils
+          </h1>
+          <p className={styles.subtitle}>
+            Decode glitched glyphs from security, networking, self-hosting, homelabbing, and
+            general tech.
+          </p>
+          <p className={styles.tagline}>A cyberpunk ASCII tech-logo guessing game.</p>
+        </div>
       </header>
 
       <div className={styles.modes}>

@@ -61,3 +61,28 @@
   border-color: var(--panel-border-strong);
   box-shadow: var(--shadow-cyan);
 }
+
+.short {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .header {
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .nav {
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .long {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+}

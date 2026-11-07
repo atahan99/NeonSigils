@@ -18,6 +18,8 @@ export const GameOverPage = () => {
 
   const [playerName, setPlayerName] = useState(settings.playerName)
   const [copied, setCopied] = useState(false)
+  // Shown for manual copying when the clipboard API is blocked.
+  const [shareFallback, setShareFallback] = useState("")
 
   useEffect(() => {
     if (!summary) navigate("home", {}, { replace: true })
@@ -46,11 +48,12 @@ export const GameOverPage = () => {
   }
 
   const handleShare = async () => {
+    const text = dailyShareText(summary)
     try {
-      await navigator.clipboard.writeText(dailyShareText(summary))
+      await navigator.clipboard.writeText(text)
       setCopied(true)
     } catch {
-      /* clipboard blocked; the button just doesn't confirm */
+      setShareFallback(text)
     }
   }
 
@@ -135,6 +138,17 @@ export const GameOverPage = () => {
           )}
         </NeonPanel>
       </div>
+
+      {shareFallback && (
+        <textarea
+          className={styles.shareText}
+          readOnly
+          rows={4}
+          value={shareFallback}
+          aria-label="Daily result to copy"
+          onFocus={(e) => e.currentTarget.select()}
+        />
+      )}
 
       <div className={styles.actions}>
         {summary.daily && (

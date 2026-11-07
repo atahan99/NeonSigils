@@ -58,3 +58,16 @@
   );
   margin: var(--space-4) 0;
 }
+
+/* Suspense fallback while the logo archive chunk loads. */
+.archive-loading {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+}
